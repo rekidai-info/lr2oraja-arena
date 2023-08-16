@@ -3,21 +3,18 @@ package bms.player.beatoraja.song;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import bms.model.*;
 import bms.player.beatoraja.Validatable;
 import bms.player.beatoraja.play.BMSPlayerRule;
-import bms.tool.mdprocessor.IpfsInformation;
 
 /**
  * 楽曲データ
  * 
  * @author exch
  */
-public class SongData implements Validatable, IpfsInformation {
+public class SongData implements Validatable {
 
 	public static final SongData[] EMPTY = new SongData[0];
 	
@@ -69,8 +66,6 @@ public class SongData implements Validatable, IpfsInformation {
 	private String sha256 = "";
 	private String url;
 	private String appendurl;
-	private String ipfs;
-	private String appendipfs;
 	private int date;
 	private int adddate;
 	private int level;
@@ -541,22 +536,6 @@ public class SongData implements Validatable, IpfsInformation {
 		this.charthash = charthash;
 	}
 
-	public String getIpfs() {
-		return ipfs;
-	}
-
-	public void setIpfs(String ipfs) {
-		this.ipfs = ipfs;
-	}
-
-	public String getAppendIpfs() {
-		return appendipfs;
-	}
-
-	public void setAppendIpfs(String appendipfs) {
-		this.appendipfs = appendipfs;
-	}
-
 	public List<String> getOrg_md5() {
 		return org_md5;
 	}
@@ -608,5 +587,37 @@ public class SongData implements Validatable, IpfsInformation {
 			stagefile = "";
 		}
 		return true;
+	}
+	
+	public String getDisplayString() {
+		final StringBuilder builder = new StringBuilder(128);
+
+		builder.append("Lv");
+		builder.append(getLevel());
+		builder.append(' ');
+
+		switch (getDifficulty()) {
+			case 1:
+				builder.append("[BEGINNER] ");
+				break;
+			case 2:
+				builder.append("[NORMAL] ");
+				break;
+			case 3:
+				builder.append("[HYPER] ");
+				break;
+			case 4:
+				builder.append("[ANOTHER] ");
+				break;
+			case 5:
+				builder.append("[INSANE] ");
+				break;
+		}
+
+		builder.append(getFullTitle());
+		builder.append(' ');
+		builder.append(getArtist());
+
+		return builder.toString();
 	}
 }

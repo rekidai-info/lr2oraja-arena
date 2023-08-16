@@ -1,6 +1,7 @@
 package bms.player.beatoraja.skin.property;
 
 import bms.player.beatoraja.*;
+import bms.player.beatoraja.arena.ArenaRoom;
 import bms.player.beatoraja.config.KeyConfiguration;
 import bms.player.beatoraja.config.SkinConfiguration;
 import bms.player.beatoraja.decide.MusicDecide;
@@ -262,6 +263,50 @@ public class StringPropertyFactory {
 				return irconfig[0].getIrname();
 			}
 			return "";
+		}),
+		arena_name_player1(1031, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerName1() == null ? "" : arenaRoom.getPlayerName1();
+		}),
+		arena_name_player2(1032, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerName2() == null ? "" : arenaRoom.getPlayerName2();
+		}),
+		arena_name_player3(1033, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerName3() == null ? "" : arenaRoom.getPlayerName3();
+		}),
+		arena_name_player4(1034, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerName4() == null ? "" : arenaRoom.getPlayerName4();
 		}),
 		;
 		

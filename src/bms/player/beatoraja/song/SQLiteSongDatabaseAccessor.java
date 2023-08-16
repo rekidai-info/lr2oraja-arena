@@ -11,14 +11,17 @@ import java.nio.file.Paths;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import bms.player.beatoraja.SQLiteDatabaseAccessor;
 import bms.player.beatoraja.Validatable;
+import com.sun.javafx.logging.PlatformLogger;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.apache.commons.dbutils.handlers.MapListHandler;
+import org.apache.commons.dbutils.handlers.ScalarHandler;
 import org.sqlite.SQLiteConfig;
 import org.sqlite.SQLiteConfig.SynchronousMode;
 import org.sqlite.SQLiteDataSource;
@@ -640,5 +643,18 @@ public class SQLiteSongDatabaseAccessor extends SQLiteDatabaseAccessor implement
 	public static interface SongDatabaseAccessorPlugin {
 		
 		public void update(BMSModel model, SongData song);
+	}
+
+	@Override
+	public int countSongs() {
+		try {
+			final Integer count = qr.query("SELECT COUNT(path) from song", new ScalarHandler<Integer>(1));
+
+			return count == null ? 0 : count.intValue();
+		} catch (SQLException e) {
+			Logger.getGlobal().log(Level.SEVERE, e.getLocalizedMessage(), e);
+		}
+
+		return 0;
 	}
 }

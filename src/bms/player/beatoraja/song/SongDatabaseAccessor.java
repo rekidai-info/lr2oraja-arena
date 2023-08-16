@@ -67,4 +67,6 @@ public interface SongDatabaseAccessor {
 	 */
 	public void updateSongDatas(String updatepath, String[] bmsroot, boolean updateAll, SongInformationAccessor info);
 
+	public int countSongs();
+
 }

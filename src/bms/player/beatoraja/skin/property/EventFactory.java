@@ -81,12 +81,14 @@ public class EventFactory {
 		mode(11, (state, arg1) -> {
 			if(state instanceof MusicSelector) {
 				final MusicSelector selector = (MusicSelector) state;
-				int mode = 0;
-				PlayerConfig config = selector.resource.getPlayerConfig();
-				for(;mode < MusicSelector.MODE.length && MusicSelector.MODE[mode] != config.getMode();mode++);
-				config.setMode(MusicSelector.MODE[(mode + (arg1 >= 0 ? 1 : MusicSelector.MODE.length - 1)) % MusicSelector.MODE.length]);
-				selector.getBarRender().updateBar();
-				selector.play(SOUND_OPTIONCHANGE);
+				if (!selector.resource.getArenaData().isArena()) {
+					int mode = 0;
+					PlayerConfig config = selector.resource.getPlayerConfig();
+					for (; mode < MusicSelector.MODE.length && MusicSelector.MODE[mode] != config.getMode(); mode++) ;
+					config.setMode(MusicSelector.MODE[(mode + (arg1 >= 0 ? 1 : MusicSelector.MODE.length - 1)) % MusicSelector.MODE.length]);
+					selector.getBarRender().updateBar();
+					selector.play(SOUND_OPTIONCHANGE);
+				}
 			}
 		}),
 		/**
@@ -538,10 +540,12 @@ public class EventFactory {
 			if(state instanceof MusicSelector) {
 				final int lnmodelength = 3;
 				final MusicSelector selector = (MusicSelector) state;
-	            PlayerConfig config = selector.resource.getPlayerConfig();
-	            config.setLnmode((config.getLnmode() + (arg1 >= 0 ? 1 : lnmodelength - 1)) % lnmodelength);
-	            selector.getBarRender().updateBar();
-	            selector.play(SOUND_OPTIONCHANGE);
+				if (!selector.resource.getArenaData().isArena()) {
+					PlayerConfig config = selector.resource.getPlayerConfig();
+					config.setLnmode((config.getLnmode() + (arg1 >= 0 ? 1 : lnmodelength - 1)) % lnmodelength);
+					selector.getBarRender().updateBar();
+					selector.play(SOUND_OPTIONCHANGE);
+				}
 			}
 		}),
 		autosavereplay1(321, changeAutoSaveReplay(0)),

@@ -3,12 +3,19 @@ package bms.player.beatoraja.result;
 import static bms.player.beatoraja.ClearType.*;
 import static bms.player.beatoraja.skin.SkinProperty.*;
 
+import java.time.Duration;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import bms.player.beatoraja.arena.*;
 import bms.player.beatoraja.input.KeyCommand;
 import bms.player.beatoraja.input.KeyBoardInputProcesseor.ControlKeys;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.FloatArray;
 
@@ -32,6 +39,10 @@ public class MusicResult extends AbstractResult {
 	private ResultKeyProperty property;
 	
 	private List<IRSendStatus> irSendStatus = new ArrayList<IRSendStatus>();
+
+	private long createdTimeMillis;
+	private long prevUpdateTimeMillis;
+	public List<ArenaMatchResult> arenaMatchResult;
 
 	public MusicResult(MainController main) {
 		super(main);
@@ -72,6 +83,10 @@ public class MusicResult extends AbstractResult {
 		gaugeType = resource.getGrooveGauge().getType();
 
 		loadSkin(SkinType.RESULT);
+
+		createdTimeMillis = System.currentTimeMillis();
+		prevUpdateTimeMillis = System.currentTimeMillis();
+		arenaMatchResult = ArenaMatchResult.from(resource.getArenaData().getArenaRoom(), resource.getArenaData().getOrderOfSongs());
 	}
 	
 	public void prepare() {
@@ -155,6 +170,38 @@ public class MusicResult extends AbstractResult {
 	}
 
 	public void render() {
+		if (resource.getArenaData().isArena()) {
+			final long nowTimeMillis = System.currentTimeMillis();
+
+			if (createdTimeMillis + Duration.ofSeconds(15).toMillis() < nowTimeMillis) {
+				if (resource.getArenaData().hasNextSong()) {
+					main.changeState(MainStateType.MUSICSELECT);
+				} else {
+					main.changeState(MainStateType.ARENARESULT);
+				}
+			}
+
+			if (prevUpdateTimeMillis + Duration.ofSeconds(3).toMillis() < nowTimeMillis) {
+				final ArenaRoom arenaRoom = ArenaUtils.updateLastUpdate(resource.getArenaData().getArenaRoom().getId(), ArenaConfig.INSTANCE.getPlayerID());
+
+				if (arenaRoom != null) {
+					if (arenaRoom.getError() == null) {
+						resource.getArenaData().setArenaRoom(arenaRoom);
+						arenaMatchResult = ArenaMatchResult.from(arenaRoom, resource.getArenaData().getOrderOfSongs());
+					} else {
+						Logger.getGlobal().log(Level.WARNING, arenaRoom.getError());
+						main.getMessageRenderer().addMessage(arenaRoom.getError(), 2000, Color.RED, 0);
+					}
+				}
+
+				prevUpdateTimeMillis = nowTimeMillis;
+			}
+		}
+
+		if (getSkin() == null) {
+			return;
+		}
+
 		long time = timer.getNowTime();
 		timer.switchTimer(TIMER_RESULTGRAPH_BEGIN, true);
 		timer.switchTimer(TIMER_RESULTGRAPH_END, true);
@@ -222,24 +269,32 @@ public class MusicResult extends AbstractResult {
 					}
 					if (resource.getPlayMode().mode == BMSPlayerMode.Mode.PLAY
 							&& key == ResultKeyProperty.ResultKey.REPLAY_DIFFERENT) {
-						Logger.getGlobal().info("オプションを変更せずリプレイ");
-						// オプションを変更せず同じ譜面でリプレイ
-						resource.getReplayData().randomoptionseed = -1;
-						resource.reloadBMSFile();
-						main.changeState(MainStateType.PLAY);
+						if (!resource.getArenaData().isArena()) {
+							Logger.getGlobal().info("オプションを変更せずリプレイ");
+							// オプションを変更せず同じ譜面でリプレイ
+							resource.getReplayData().randomoptionseed = -1;
+							resource.reloadBMSFile();
+							main.changeState(MainStateType.PLAY);
+						}
 					} else if (resource.getPlayMode().mode == BMSPlayerMode.Mode.PLAY
 							&& key == ResultKeyProperty.ResultKey.REPLAY_SAME) {
-						// 同じ譜面でリプレイ
-						if(resource.isUpdateScore()) {
-							Logger.getGlobal().info("同じ譜面でリプレイ");							
-						} else {
-							Logger.getGlobal().info("アシストモード時は同じ譜面でリプレイできません");
-							resource.getReplayData().randomoptionseed = -1;
+						if (!resource.getArenaData().isArena()) {
+							// 同じ譜面でリプレイ
+							if (resource.isUpdateScore()) {
+								Logger.getGlobal().info("同じ譜面でリプレイ");
+							} else {
+								Logger.getGlobal().info("アシストモード時は同じ譜面でリプレイできません");
+								resource.getReplayData().randomoptionseed = -1;
+							}
+							resource.reloadBMSFile();
+							main.changeState(MainStateType.PLAY);
 						}
-						resource.reloadBMSFile();
-						main.changeState(MainStateType.PLAY);
 					} else {
-						main.changeState(MainStateType.MUSICSELECT);
+						if (resource.getArenaData().isArena() && !resource.getArenaData().hasNextSong()) {
+							main.changeState(MainStateType.ARENARESULT);
+						} else {
+							main.changeState(MainStateType.MUSICSELECT);
+						}
 					}
 				}
 			}

@@ -280,12 +280,10 @@ public class TableDataAccessor {
 		Mode mode = te.getMode() != null ? Mode.getMode(te.getMode()) : null;
 		song.setMode(mode != null ? mode.id : (defaultMode != null ? defaultMode.id : 0));
 		song.setUrl(te.getURL());
-		song.setIpfs(te.getIPFS());
 		song.setOrg_md5(te.getParentHash());
 		if(te instanceof DifficultyTableElement) {
 			DifficultyTableElement dte = (DifficultyTableElement) te;
 			song.setAppendurl(dte.getAppendURL());
-			song.setAppendIpfs(dte.getAppendIPFS());
 		}
 		
 		return song;

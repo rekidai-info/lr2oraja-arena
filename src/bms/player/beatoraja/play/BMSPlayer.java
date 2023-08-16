@@ -4,10 +4,14 @@ import static bms.player.beatoraja.CourseData.CourseDataConstraint.*;
 import static bms.player.beatoraja.skin.SkinProperty.*;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import bms.player.beatoraja.arena.*;
 import bms.player.beatoraja.config.Discord;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.FloatArray;
 
@@ -20,6 +24,7 @@ import bms.player.beatoraja.pattern.Random;
 import bms.player.beatoraja.play.PracticeConfiguration.PracticeProperty;
 import bms.player.beatoraja.play.bga.BGAProcessor;
 import bms.player.beatoraja.skin.SkinType;
+import org.zeromq.ZMQ;
 
 /**
  * BMSプレイヤー本体
@@ -97,6 +102,77 @@ public class BMSPlayer extends MainState {
 	private long startpressedtime;
 
 	public static Discord discord;
+
+	private long sendReadyPlayMusicTimeMillis;
+	private long prevSendScoreTimeMillis;
+	private int prevEXScore;
+	public int myEXScore;
+	public int player1EXScore;
+	public int player2EXScore;
+	public int player3EXScore;
+	public int player4EXScore;
+
+	private void syncScore() {
+		final long nowTimeMillis = System.currentTimeMillis();
+
+		if (prevSendScoreTimeMillis + 200 < nowTimeMillis) {
+			{ // send
+				if (myEXScore > prevEXScore) {
+					prevEXScore = myEXScore;
+
+					try {
+						MQUtils.sendScore(resource.getArenaData().getArenaRoom(), myEXScore, ZMQ.DONTWAIT);
+					} catch (final Exception e) {
+						Logger.getGlobal().log(Level.WARNING, e.getLocalizedMessage(), e);
+					}
+				}
+			}
+
+			{ // receive
+				try {
+					String received = MQUtils.subRecvStr(ZMQ.DONTWAIT);
+
+					while (received != null) {
+						final SendScore sendScore = SendScore.fromJson(received);
+
+						if (sendScore != null) {
+							final ArenaRoom arenaRoom = resource.getArenaData().getArenaRoom();
+
+							if (arenaRoom.getPlayerID1() != null && arenaRoom.getPlayerID1().equals(sendScore.getPlayerID())) {
+								player1EXScore = sendScore.getExScore();
+							} else if (arenaRoom.getPlayerID2() != null && arenaRoom.getPlayerID2().equals(sendScore.getPlayerID())) {
+								player2EXScore = sendScore.getExScore();
+							} else if (arenaRoom.getPlayerID3() != null && arenaRoom.getPlayerID3().equals(sendScore.getPlayerID())) {
+								player3EXScore = sendScore.getExScore();
+							} else if (arenaRoom.getPlayerID4() != null && arenaRoom.getPlayerID4().equals(sendScore.getPlayerID())) {
+								player4EXScore = sendScore.getExScore();
+							}
+						}
+
+						received = MQUtils.subRecvStr(ZMQ.DONTWAIT);
+					}
+				} catch (final Exception e) {
+					Logger.getGlobal().log(Level.WARNING, e.getLocalizedMessage(), e);
+				}
+			}
+
+			prevSendScoreTimeMillis = nowTimeMillis;
+		}
+	}
+
+	private void backToNonArenaMode() {
+		sendReadyPlayMusicTimeMillis = 0;
+		prevSendScoreTimeMillis = 0;
+		prevEXScore = 0;
+		myEXScore = 0;
+		player1EXScore = 0;
+		player2EXScore = 0;
+		player3EXScore = 0;
+		player4EXScore = 0;
+		ArenaUtils.close();
+		MQUtils.close();
+		resource.clearArenaData();
+	}
 
 	public BMSPlayer(MainController main, PlayerResource resource) {
 		super(main);
@@ -282,6 +358,41 @@ public class BMSPlayer extends MainState {
 			}
 		}
 
+		if (resource.getArenaData().isArena()) {
+			final Random random = Random.getRandom(playinfo.randomoption);
+			
+			if (random == Random.RANDOM || random == Random.R_RANDOM || random == Random.S_RANDOM || random == Random.H_RANDOM || random == Random.RANDOM_EX || random == Random.S_RANDOM_EX) {
+				final PlayerResource.ArenaData arenaData = resource.getArenaData();
+				final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+				final int order = arenaData.getOrderOfSongs();
+
+				switch (order) {
+					case 0:
+						Logger.getGlobal().info("RANDOM 配置同期：" + arenaRoom.getRandomSeed1());
+						playinfo.randomoptionseed = arenaRoom.getRandomSeed1();
+						playinfo.randomoption2seed = arenaRoom.getRandomSeed1();
+						break;
+					case 1:
+						Logger.getGlobal().info("RANDOM 配置同期：" + arenaRoom.getRandomSeed2());
+						playinfo.randomoptionseed = arenaRoom.getRandomSeed2();
+						playinfo.randomoption2seed = arenaRoom.getRandomSeed2();
+						break;
+					case 2:
+						Logger.getGlobal().info("RANDOM 配置同期：" + arenaRoom.getRandomSeed3());
+						playinfo.randomoptionseed = arenaRoom.getRandomSeed3();
+						playinfo.randomoption2seed = arenaRoom.getRandomSeed3();
+						break;
+					case 3:
+						Logger.getGlobal().info("RANDOM 配置同期：" + arenaRoom.getRandomSeed4());
+						playinfo.randomoptionseed = arenaRoom.getRandomSeed4();
+						playinfo.randomoption2seed = arenaRoom.getRandomSeed4();
+						break;
+					default:
+						throw new RuntimeException("Invalid order of songs(" + order + ")");
+				}
+			}
+		}
+
 		Logger.getGlobal().info("譜面オプション設定");
 		if (replay != null && replay.pattern != null) {
 			// リプレイ譜面再現(PatternModifyLog使用。旧verとの互換性維持用)
@@ -427,6 +538,15 @@ public class BMSPlayer extends MainState {
 		keyinput = new KeyInputProccessor(this, laneProperty);
 		PlayerConfig config = resource.getPlayerConfig();
 
+		sendReadyPlayMusicTimeMillis = 0;
+		prevSendScoreTimeMillis = 0;
+		prevEXScore = 0;
+		myEXScore = 0;
+		player1EXScore = 0;
+		player2EXScore = 0;
+		player3EXScore = 0;
+		player4EXScore = 0;
+
 		loadSkin(getSkinType());
 
 		setSound(SOUND_READY, "playready.wav", SoundType.SOUND, false);
@@ -491,6 +611,9 @@ public class BMSPlayer extends MainState {
 	public void render() {
 		final PlaySkin skin = (PlaySkin) getSkin();
 		if(skin == null) {
+			if (resource.getArenaData().isArena()) {
+				backToNonArenaMode();
+			}
 			main.changeState(MainStateType.MUSICSELECT);
 			return;
 		}
@@ -521,6 +644,17 @@ public class BMSPlayer extends MainState {
 				timer.setTimerOn(TIMER_READY);
 				play(SOUND_READY);
 				Logger.getGlobal().info("STATE_READYに移行");
+				if (resource.getArenaData().isArena()) {
+					final ArenaRoom arenaRoom = ArenaUtils.updateLastUpdate(resource.getArenaData().getArenaRoom().getId(), null);
+					if (arenaRoom != null) {
+						if (arenaRoom.getError() == null) {
+							resource.getArenaData().setArenaRoom(arenaRoom);
+						} else {
+							Logger.getGlobal().log(Level.WARNING, arenaRoom.getError());
+							main.getMessageRenderer().addMessage(arenaRoom.getError(), 2000, Color.RED, 0);
+						}
+					}
+				}
 			}
 			if(!timer.isTimerOn(TIMER_PM_CHARA_1P_NEUTRAL) || !timer.isTimerOn(TIMER_PM_CHARA_2P_NEUTRAL)){
 				timer.setTimerOn(TIMER_PM_CHARA_1P_NEUTRAL);
@@ -601,6 +735,36 @@ public class BMSPlayer extends MainState {
 			// GET READY
 		case STATE_READY:
 			if (timer.getNowTime(TIMER_READY) > skin.getPlaystart()) {
+				if (resource.getArenaData().isArena()) {
+					final long nowTimeMillis = System.currentTimeMillis();
+
+					if (sendReadyPlayMusicTimeMillis + Duration.ofSeconds(3).toMillis() < nowTimeMillis) {
+						final ArenaRoom arenaRoom = ArenaUtils.readyPlayMusic(resource.getArenaData().getArenaRoom().getId(), ArenaConfig.INSTANCE.getPlayerID(), true);
+
+						if (arenaRoom != null) {
+							if (arenaRoom.getError() == null) {
+								resource.getArenaData().setArenaRoom(arenaRoom);
+								if (arenaRoom.getPlayerCount() <= 1) {
+									main.getMessageRenderer().addMessage("Your opponent has disconnected. Arena mode has been closed.", 3000, Color.RED, 0);
+									backToNonArenaMode();
+									main.changeState(MainStateType.MUSICSELECT);
+								}
+							} else {
+								Logger.getGlobal().log(Level.WARNING, arenaRoom.getError());
+								main.getMessageRenderer().addMessage(arenaRoom.getError(), 2000, Color.RED, 0);
+							}
+						}
+
+						sendReadyPlayMusicTimeMillis = nowTimeMillis;
+					}
+
+					final String received = MQUtils.subRecvStr(ZMQ.DONTWAIT);
+
+					if (!"playable".equals(received)) {
+						break;
+					}
+				}
+
 				replayConfig = lanerender.getPlayConfig().clone();
 				state = STATE_PLAY;
 				timer.setMicroTimer(TIMER_PLAY, micronow - starttimeoffset * 1000);
@@ -615,6 +779,10 @@ public class BMSPlayer extends MainState {
 			break;
 		// プレイ
 		case STATE_PLAY:
+			if (resource.getArenaData().isArena()) {
+				syncScore();
+			}
+
 			final long deltatime = micronow - prevtime;
 			final long deltaplay = deltatime * (100 - playspeed) / 100;
 			PracticeProperty property = practice.getPracticeProperty();
@@ -672,6 +840,19 @@ public class BMSPlayer extends MainState {
 				timer.setTimerOff(TIMER_PM_CHARA_DANCE);
 
 				Logger.getGlobal().info("STATE_FINISHEDに移行");
+
+				if (resource.getArenaData().isArena()) {
+					syncScore();
+					final ArenaRoom arenaRoom = ArenaUtils.updateScore(resource.getArenaData().getArenaRoom().getId(), ArenaConfig.INSTANCE.getPlayerID(), resource.getArenaData().getOrderOfSongs(), judge.getScoreData().getExscore());
+					if (arenaRoom != null) {
+						if (arenaRoom.getError() == null) {
+							resource.getArenaData().setArenaRoom(arenaRoom);
+						} else {
+							Logger.getGlobal().log(Level.WARNING, arenaRoom.getError());
+							main.getMessageRenderer().addMessage(arenaRoom.getError(), 2000, Color.RED, 0);
+						}
+					}
+				}
 			} else if(playtime - TIME_MARGIN < ptime) {
 				timer.switchTimer(TIMER_ENDOFNOTE_1P, true);
 			}
@@ -691,14 +872,19 @@ public class BMSPlayer extends MainState {
 			} else if (g == 0) {
 				switch(config.getGaugeAutoShift()) {
 				case PlayerConfig.GAUGEAUTOSHIFT_NONE:
-					// FAILED移行
-					state = STATE_FAILED;
-					timer.setTimerOn(TIMER_FAILED);
-					if (resource.mediaLoadFinished()) {
-						main.getAudioProcessor().stop((Note) null);
+					if (resource.getArenaData().isArena()) {
+						keyinput.stopJudge();
+						keysound.stopBGPlay();
+					} else {
+						// FAILED移行
+						state = STATE_FAILED;
+						timer.setTimerOn(TIMER_FAILED);
+						if (resource.mediaLoadFinished()) {
+							main.getAudioProcessor().stop((Note) null);
+						}
+						play(SOUND_PLAYSTOP);
+						Logger.getGlobal().info("STATE_FAILEDに移行");
 					}
-					play(SOUND_PLAYSTOP);
-					Logger.getGlobal().info("STATE_FAILEDに移行");
 					break;
 				case PlayerConfig.GAUGEAUTOSHIFT_CONTINUE:
 					break;
@@ -713,6 +899,10 @@ public class BMSPlayer extends MainState {
 			break;
 		// 閉店処理
 		case STATE_FAILED:
+			sendReadyPlayMusicTimeMillis = 0;
+			prevSendScoreTimeMillis = 0;
+			prevEXScore = 0;
+
 			keyinput.stopJudge();
 			keysound.stopBGPlay();
 			if ((input.startPressed() ^ input.isSelectPressed()) && resource.getCourseBMSModels() == null
@@ -764,6 +954,10 @@ public class BMSPlayer extends MainState {
 			break;
 		// 完奏処理
 		case STATE_FINISHED:
+			sendReadyPlayMusicTimeMillis = 0;
+			prevSendScoreTimeMillis = 0;
+			prevEXScore = 0;
+
 			keyinput.stopJudge();
 			keysound.stopBGPlay();
 			if (timer.getNowTime(TIMER_MUSIC_END) > skin.getFinishMargin()) {
@@ -784,9 +978,15 @@ public class BMSPlayer extends MainState {
 				resource.setAssist(assist);
 				input.setEnable(true);
 				input.setStartTime(0);
+				if (resource.getArenaData().isArena() && resource.getScoreData() == null) {
+					resource.setScoreData(createScoreData2());
+				}
 				if (autoplay.mode == BMSPlayerMode.Mode.PRACTICE) {
 					state = STATE_PRACTICE;
 				} else if (resource.getScoreData() != null) {
+					if (resource.getArenaData().isArena()) {
+						syncScore();
+					}
 					Logger.getGlobal().info("\"score\": " + resource.getScoreData());
 					main.changeState(MainStateType.RESULT);
 				} else {
@@ -858,12 +1058,20 @@ public class BMSPlayer extends MainState {
 	}
 
 	public ScoreData createScoreData() {
-		final PlayerConfig config = resource.getPlayerConfig();
 		ScoreData score = judge.getScoreData();
 		if (score.getEpg() + score.getLpg() + score.getEgr() + score.getLgr() + score.getEgd() + score.getLgd() + score.getEbd() + score.getLbd() == 0) {
 			return null;
 		}
+		return createScoreDataStub(score);
+	}
 
+	private ScoreData createScoreData2() {
+		ScoreData score = judge.getScoreData();
+		return createScoreDataStub(score);
+	}
+
+	private ScoreData createScoreDataStub(final ScoreData score) {
+		final PlayerConfig config = resource.getPlayerConfig();
 		ClearType clear = ClearType.Failed;
 		if (state != STATE_FAILED && gauge.isQualified()) {
 			if (assist > 0) {
@@ -884,7 +1092,11 @@ public class BMSPlayer extends MainState {
 				}
 			}
 		}
-		score.setClear(clear.id);
+		if (score.getEpg() + score.getLpg() + score.getEgr() + score.getLgr() + score.getEgd() + score.getLgd() + score.getEbd() + score.getLbd() == 0) {
+			score.setClear(ClearType.NoPlay.id);
+		} else {
+			score.setClear(clear.id);
+		}
 		score.setGauge(gauge.isTypeChanged() ? -1 : gauge.getType());
 		score.setOption(playinfo.randomoption + (model.getMode().player == 2
 				? (playinfo.randomoption2 * 10 + playinfo.doubleoption * 100) : 0));
@@ -910,7 +1122,7 @@ public class BMSPlayer extends MainState {
 
 		score.setPassnotes(notes);
 		score.setMinbp(score.getEbd() + score.getLbd() + score.getEpr() + score.getLpr() + score.getEms() + score.getLms() + resource.getSongdata().getNotes() - notes);
-		
+
 		long count = 0;
 		long avgduration = 0;
 		final int lanes = model.getMode().key;
@@ -919,10 +1131,10 @@ public class BMSPlayer extends MainState {
 				Note n = tl.getNote(i);
 				if (n != null && (
 						n instanceof NormalNote ||
-						(n instanceof LongNote && 
-						!(((model.getLntype() == BMSModel.LNTYPE_LONGNOTE && ((LongNote) n).getType() == LongNote.TYPE_UNDEFINED)
-								|| ((LongNote) n).getType() == LongNote.TYPE_LONGNOTE)
-								&& ((LongNote) n).isEnd())))) {
+								(n instanceof LongNote &&
+										!(((model.getLntype() == BMSModel.LNTYPE_LONGNOTE && ((LongNote) n).getType() == LongNote.TYPE_UNDEFINED)
+												|| ((LongNote) n).getType() == LongNote.TYPE_LONGNOTE)
+												&& ((LongNote) n).isEnd())))) {
 					int state = n.getState();
 					long time = n.getMicroPlayTime();
 					avgduration += state >= 1 && state <= 4 ? Math.abs(time) : 1000000;
@@ -932,7 +1144,11 @@ public class BMSPlayer extends MainState {
 			}
 		}
 		score.setTotalDuration(avgduration);
-		score.setAvgjudge(avgduration / count);
+		if (count == 0) {
+			score.setAvgjudge(0);
+		} else {
+			score.setAvgjudge(avgduration / count);
+		}
 //		System.out.println(avgduration + " / " + count + " = " + score.getAvgjudge());
 
 		score.setDeviceType(main.getInputProcessor().getDeviceType());
@@ -940,6 +1156,10 @@ public class BMSPlayer extends MainState {
 	}
 
 	public void stopPlay() {
+		if (resource.getArenaData().isArena()) {
+			return;
+		}
+
 		if (state == STATE_PRACTICE) {
 			practice.saveProperty();
 			timer.setTimerOn(TIMER_FADEOUT);
@@ -1010,6 +1230,8 @@ public class BMSPlayer extends MainState {
 		timer.switchTimer(TIMER_SCORE_AAA, getScoreDataProperty().qualifyRank(24));
 		timer.switchTimer(TIMER_SCORE_BEST, this.judge.getScoreData().getExscore() >= getScoreDataProperty().getBestScore());
 		timer.switchTimer(TIMER_SCORE_TARGET, this.judge.getScoreData().getExscore() >= getScoreDataProperty().getRivalScore());
+
+		myEXScore = this.judge.getScoreData().getExscore();
 	}
 
 	public GrooveGauge getGauge() {

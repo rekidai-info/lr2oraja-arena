@@ -2,8 +2,10 @@ package bms.player.beatoraja;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.logging.Logger;
 
+import bms.player.beatoraja.arena.ArenaRoom;
 import com.badlogic.gdx.utils.*;
 
 import bms.model.*;
@@ -118,12 +120,132 @@ public class PlayerResource {
 	private String tablename = "";
 	private String tablelevel = "";
 	private String tablefull;
+	
+	// アリーナ用データ
+	public static class ArenaData {
+		private boolean isArena;
+		private Mode mode;
+		private ArenaRoom arenaRoom;
+        private int orderOfSongs;
+		private List<String> playerNames;
+		private List<String> songHashes;
+		
+		public ArenaData() {
+			this.isArena = false;
+			this.mode = null;
+			this.arenaRoom = null;
+            this.orderOfSongs = -1;
+			this.songHashes = null;
+		}
+
+		public boolean isArena() {
+			return isArena;
+		}
+
+		public void setArena(boolean arena) {
+			isArena = arena;
+		}
+
+		public Mode getMode() {
+			return mode;
+		}
+
+		public void setMode(final Mode mode) {
+			this.mode = mode;
+		}
+
+		public ArenaRoom getArenaRoom() {
+			return arenaRoom;
+		}
+
+		public void setArenaRoom(final ArenaRoom arenaRoom) {
+			this.arenaRoom = arenaRoom;
+		}
+
+        public int getOrderOfSongs() {
+            return orderOfSongs;
+        }
+
+        public void setOrderOfSongs(final int orderOfSongs) {
+            this.orderOfSongs = orderOfSongs;
+        }
+
+		public List<String> getPlayerNames() {
+			return playerNames;
+		}
+
+		public void setPlayerNames(List<String> playerNames) {
+			this.playerNames = playerNames;
+		}
+
+		public List<String> getSongHashes() {
+			return songHashes;
+		}
+
+		public void setSongHashes(final List<String> songHashes) {
+			this.songHashes = songHashes;
+		}
+		
+		public boolean hasNextSong() {
+			if (songHashes == null) {
+				return false;
+			}
+			
+			for (final String hash : songHashes) {
+				if (hash != null && !hash.isBlank()) {
+					return true;
+				}
+			}
+			
+			return false;
+		}
+
+		public String getNextSong() {
+			if (songHashes == null) {
+				return null;
+			}
+
+			for (int i = 0; i < songHashes.size(); ++i) {
+				if (songHashes.get(i) != null && !songHashes.get(i).isBlank()) {
+					final String hash = songHashes.get(i);
+
+					songHashes.set(i, null);
+
+					return hash;
+				}
+			}
+
+			return null;
+		}
+
+		public String getNextPlayer() {
+			if (playerNames == null) {
+				return null;
+			}
+
+			for (int i = 0; i < playerNames.size(); ++i) {
+				if (playerNames.get(i) != null && !playerNames.get(i).isBlank()) {
+					final String playerName = playerNames.get(i);
+
+					playerNames.set(i, null);
+
+					return playerName;
+				}
+			}
+
+			return null;
+		}
+	}
+	private ArenaData arenaData;
+	public ArenaData getArenaData() { return arenaData; }
+	public void clearArenaData() { arenaData = new ArenaData(); }
 
 	public PlayerResource(AudioDriver audio, Config config, PlayerConfig pconfig) {
 		this.config = config;
 		this.pconfig = pconfig;
 		this.bmsresource = new BMSResource(audio, config, pconfig);
 		this.orgGaugeOption = pconfig.getGauge();
+		clearArenaData();
 	}
 
 	public void clear() {

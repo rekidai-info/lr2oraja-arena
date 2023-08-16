@@ -151,9 +151,6 @@ public class Config implements Validatable {
 	private int bannerPixmapGen = 2;
 	private int songResourceGen = 1;
 
-	private boolean enableIpfs = true;
-	private String ipfsurl = "https://gateway.ipfs.io/";
-
 	private int irSendCount = 5;
 
 	private boolean useDiscordRPC = true;
@@ -439,22 +436,6 @@ public class Config implements Validatable {
 		this.songResourceGen = songResourceGen;
 	}
 
-	public boolean isEnableIpfs() {
-		return enableIpfs;
-	}
-
-	public void setEnableIpfs(boolean enableIpfs) {
-		this.enableIpfs = enableIpfs;
-	}
-
-	public String getIpfsUrl() {
-		return ipfsurl;
-	}
-
-	public void setIpfsUrl(String ipfsUrl) {
-		this.ipfsurl = ipfsUrl;
-	}
-
 	public String getSongpath() {
 		return songpath;
 	}
@@ -538,9 +519,6 @@ public class Config implements Validatable {
 
 		bga = MathUtils.clamp(bga, 0, 2);
 		bgaExpand = MathUtils.clamp(bgaExpand, 0, 2);
-		if (ipfsurl == null) {
-			ipfsurl = "https://gateway.ipfs.io/";
-		}
 
 		songpath = songpath != null ? songpath : SONGPATH_DEFAULT;
 		songinfopath = songinfopath != null ? songinfopath : SONGINFOPATH_DEFAULT;

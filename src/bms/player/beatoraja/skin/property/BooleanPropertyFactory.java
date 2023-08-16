@@ -135,7 +135,9 @@ public class BooleanPropertyFactory {
 		case OPTION_NO_SAVE_CLEAR:
 			// TODO 未実装
 			return new DrawProperty(DrawProperty.TYPE_NO_STATIC, (state) -> (state.main.getPlayerResource().isUpdateScore()));
-
+		case OPTION_IS_ARENA:
+			return new DrawProperty(DrawProperty.TYPE_NO_STATIC,
+					state -> state.resource.getArenaData().isArena());
 		}
 		
 		return null;

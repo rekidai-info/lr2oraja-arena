@@ -52,8 +52,6 @@ public class MainLoader extends Application {
 
 	private static Path bmsPath;
 
-	private static VersionChecker version;
-
 	public static Discord discord;
 
 	public static void main(String[] args) {
@@ -154,7 +152,7 @@ public class MainLoader extends Application {
 			cfg.vSyncEnabled = config.isVsync();
 			cfg.backgroundFPS = config.getMaxFramePerSecond();
 			cfg.foregroundFPS = config.getMaxFramePerSecond();
-			cfg.title = MainController.getVersion();
+			cfg.title = "LR2oraja+Arena";
 
 			cfg.audioDeviceBufferSize = config.getAudioConfig().getDeviceBufferSize();
 			cfg.audioDeviceSimultaneousSources = config.getAudioConfig().getDeviceSimultaneousSources();
@@ -224,19 +222,6 @@ public class MainLoader extends Application {
 		return songdb;
 	}
 
-	public static VersionChecker getVersionChecker() {
-		if(version == null) {
-			version = new GithubVersionChecker();
-		}
-		return version;
-	}
-
-	public static void setVersionChecker(VersionChecker version) {
-		if(version != null) {
-			MainLoader.version = version;
-		}
-	}
-
 	public static Path getBMSPath() {
 		return bmsPath;
 	}
@@ -278,49 +263,6 @@ public class MainLoader extends Application {
 		} catch (IOException e) {
 			Logger.getGlobal().severe(e.getMessage());
 			e.printStackTrace();
-		}
-	}
-
-	public interface VersionChecker {
-		public String getMessage();
-		public String getDownloadURL();
-	}
-
-	private static class GithubVersionChecker implements VersionChecker {
-
-		private String dlurl;
-		private String message;
-
-		public String getMessage() {
-			if(message == null) {
-				getInformation();
-			}
-			return message;
-		}
-
-		public String getDownloadURL() {
-			if(message == null) {
-				getInformation();
-			}
-			return dlurl;
-		}
-
-		private void getInformation() {
-			try {
-				URL url = new URL("https://api.github.com/repos/exch-bms2/beatoraja/releases/latest");
-				ObjectMapper mapper = new ObjectMapper();
-				GithubLastestRelease lastestData = mapper.readValue(url, GithubLastestRelease.class);
-				final String name = lastestData.name;
-				if (MainController.getVersion().contains(name)) {
-					message = "最新版を利用中です";
-				} else {
-					message = String.format("最新版[%s]を利用可能です。", name);
-					dlurl = "https://mocha-repository.info/download/beatoraja" + name + ".zip";
-				}
-			} catch (Exception e) {
-				Logger.getGlobal().warning("最新版URL取得時例外:" + e.getMessage());
-				message = "バージョン情報を取得できませんでした";
-			}
 		}
 	}
 

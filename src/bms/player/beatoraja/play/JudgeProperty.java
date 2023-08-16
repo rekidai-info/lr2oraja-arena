@@ -43,6 +43,15 @@ public enum JudgeProperty {
             new boolean[]{true, true, true, true, true, false },
             JudgeWindowRule.NORMAL
 			),
+	LR2(new long[][]{{-21000, 21000}, {-60000, 60000}, {-120000, 120000}, {-200000, 200000}, {0, 1000000}},
+			new long[][]{{-21000, 21000}, {-60000, 60000}, {-120000, 120000}, {-200000, 200000}, {0, 1000000}},
+			new long[][]{{-120000, 120000}, {-120000, 120000}, {-120000, 120000}, {-200000, 200000}},
+			new long[][]{{-120000, 120000}, {-120000, 120000}, {-120000, 120000}, {-200000, 200000}},
+			new boolean[]{true, true, true, false, false, true },
+			MissCondition.ALWAYS,
+			new boolean[]{true, true, true, true, true, false },
+			JudgeWindowRule.LR2
+			),
 	;
 
     /**
@@ -153,12 +162,101 @@ public enum JudgeProperty {
 				return JudgeWindowRule.create(org, judgerank,judgeWindowRate, true);
 			}
     		
-    	};
+    	},
+		LR2 (new int[]{25, 50, 75, 100, 75}) {
+			@Override
+			public long[][] create(long[][] org, int judgerank, int[] judgeWindowRate) {
+				return JudgeWindowRule.createLR2(org, judgerank, judgeWindowRate);
+			}
+
+		};
     	
     	/**
     	 * JUDGERANKの倍率(VERYHARD, HARD, NORMAL, EASY, VERYEASY)
     	 */
     	public final int[] judgerank;
+
+		private static final long[][] LR2_SCALING = {
+			{0,0,0,0,0},
+			{0,8000,15000,18000,21000}, // PGREAT
+			{0,24000,30000,40000,60000}, // GREAT
+			{0,40000,60000,100000,120000}, // GOOD
+		};
+
+		private static long lr2JudgeScaling(long base, int judgerank) {
+			long sign = 1;
+			if (base < 0) {
+				base = -base;
+				sign = -1;
+			}
+			if (judgerank >= 100) {
+				return sign*base*judgerank/100;
+			} else {
+				final int last = LR2_SCALING[0].length-1;
+				// judgerank < 100
+				final int judgeindex = judgerank/25;
+				int s = 0;
+				while (s < LR2_SCALING.length && base >= LR2_SCALING[s][last]) {
+					++s;
+				}
+				long n, d, x1, x2;
+				if (s < LR2_SCALING.length) {
+					n = base - LR2_SCALING[s-1][last];
+					d = LR2_SCALING[s][last] - LR2_SCALING[s-1][last];
+					x1 = d*LR2_SCALING[s-1][judgeindex] + n*(LR2_SCALING[s][judgeindex]-LR2_SCALING[s-1][judgeindex]);
+					x2 = d*LR2_SCALING[s-1][judgeindex+1] + n*(LR2_SCALING[s][judgeindex+1]-LR2_SCALING[s-1][judgeindex+1]);
+				} else {
+					n = base;
+					d = LR2_SCALING[s-1][last];
+					x1 = n*LR2_SCALING[s-1][judgeindex];
+					x2 = n*LR2_SCALING[s-1][judgeindex+1];
+				}
+				return sign*(x1 + (judgerank-judgeindex*25)*(x2-x1)/25)/d;
+			}
+		}
+
+		private static long[][] createLR2(long[][] org, int judgerank, int[] judgeWindowRate) {
+			final long[][] judge = new long[org.length][2];
+			for (int i = 0; i < judge.length; i++) {
+				for(int j = 0; j < judge[i].length; j++) {
+					judge[i][j] = org[i][j];
+				}
+			}
+			// Interpolate LR2 Judge windows
+			{
+				// only change pgreat, great, good
+				final int fixmax = 3;
+				for (int i = 0; i < fixmax; i++) {
+					for(int j = 0; j < 2; j++) {
+						judge[i][j] = lr2JudgeScaling(org[i][j], judgerank);
+					}
+				}
+
+				// correction if we exceed the bad windows
+				for (int i = fixmax-1; i >= 0; i--) {
+					for(int j = 0; j < 2; j++) {
+						if(Math.abs(judge[i][j]) > Math.abs(judge[i+1][j])) {
+							judge[i][j] = judge[i+1][j];
+						}
+					}
+				}
+			}
+
+			// judgeWindowRateによる補正
+			for (int i = 0; i < Math.min(org.length, 3); i++) {
+				for(int j = 0;j < 2;j++) {
+					judge[i][j] = judge[i][j]*judgeWindowRate[i] / 100;
+					if(Math.abs(judge[i][j]) > Math.abs(judge[3][j])) {
+						judge[i][j] = judge[3][j];
+					}
+					if(i > 0 && Math.abs(judge[i][j]) < Math.abs(judge[i - 1][j])) {
+						judge[i][j] = judge[i - 1][j];
+					}
+				}
+			}
+
+			return judge;
+		}
     	
         private static long[][] create(long[][] org, int judgerank, int[] judgeWindowRate, boolean pms) {
     		final long[][] judge = new long[org.length][2];

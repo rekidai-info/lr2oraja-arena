@@ -298,14 +298,26 @@ public class MusicSelectInputProcessor {
                     // play
                     select.selectSong(BMSPlayerMode.PLAY);
                 } else if (property.isPressed(input, PRACTICE, true)) {
-                    // practice mode
-                    select.selectSong(BMSPlayerMode.PRACTICE);
+                    if (select.resource.getArenaData().isArena()) {
+                        select.selectSong(BMSPlayerMode.PLAY);
+                    } else {
+                        // practice mode
+                        select.selectSong(BMSPlayerMode.PRACTICE);
+                    }
                 } else if (property.isPressed(input, AUTO, true)) {
-                    // auto play
-                    select.selectSong(BMSPlayerMode.AUTOPLAY);
+                    if (select.resource.getArenaData().isArena()) {
+                        select.selectSong(BMSPlayerMode.PLAY);
+                    } else {
+                        // auto play
+                        select.selectSong(BMSPlayerMode.AUTOPLAY);
+                    }
                 } else if (property.isPressed(input, MusicSelectKey.REPLAY, true)) {
-                    // replay
-                    select.selectSong((select.getSelectedReplay() >= 0) ? BMSPlayerMode.getReplayMode(select.getSelectedReplay()) : BMSPlayerMode.PLAY);
+                    if (select.resource.getArenaData().isArena()) {
+                        select.selectSong(BMSPlayerMode.PLAY);
+                    } else {
+                        // replay
+                        select.selectSong((select.getSelectedReplay() >= 0) ? BMSPlayerMode.getReplayMode(select.getSelectedReplay()) : BMSPlayerMode.PLAY);
+                    }
                 }
             } else {
                 if (property.isPressed(input, FOLDER_OPEN, true) || input.isControlKeyPressed(ControlKeys.RIGHT) || input.isControlKeyPressed(ControlKeys.ENTER)) {
@@ -333,7 +345,11 @@ public class MusicSelectInputProcessor {
 
     		if(input.isActivated(KeyCommand.AUTOPLAY_FOLDER)) {
     			if(current instanceof DirectoryBar) {
-    				select.selectSong(BMSPlayerMode.AUTOPLAY);
+                    if (select.resource.getArenaData().isArena()) {
+                        select.selectSong(BMSPlayerMode.PLAY);
+                    } else {
+                        select.selectSong(BMSPlayerMode.AUTOPLAY);
+                    }
     			}
     		}
     		if(input.isActivated(KeyCommand.OPEN_IR)) {

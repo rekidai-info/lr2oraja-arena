@@ -465,7 +465,63 @@ public class IntegerPropertyFactory {
 							: Integer.MIN_VALUE;
 				}
 				return Integer.MIN_VALUE;
-			};			
+			};
+		case NUMBER_ARENA_EXSCORE_PLAYER1:
+			return (state) -> {
+				if (state instanceof BMSPlayer player) {
+					final PlayerResource.ArenaData arenaData = player.resource.getArenaData();
+					if (!arenaData.isArena()) {
+						return Integer.MIN_VALUE;
+					}
+					if (arenaData.getArenaRoom().getPlayerID1() == null) {
+						return Integer.MIN_VALUE;
+					}
+					return player.player1EXScore;
+				}
+				return Integer.MIN_VALUE;
+			};
+		case NUMBER_ARENA_EXSCORE_PLAYER2:
+			return (state) -> {
+				if (state instanceof BMSPlayer player) {
+					final PlayerResource.ArenaData arenaData = player.resource.getArenaData();
+					if (!arenaData.isArena()) {
+						return Integer.MIN_VALUE;
+					}
+					if (arenaData.getArenaRoom().getPlayerID2() == null) {
+						return Integer.MIN_VALUE;
+					}
+					return player.player2EXScore;
+				}
+				return Integer.MIN_VALUE;
+			};
+		case NUMBER_ARENA_EXSCORE_PLAYER3:
+			return (state) -> {
+				if (state instanceof BMSPlayer player) {
+					final PlayerResource.ArenaData arenaData = player.resource.getArenaData();
+					if (!arenaData.isArena()) {
+						return Integer.MIN_VALUE;
+					}
+					if (arenaData.getArenaRoom().getPlayerID3() == null) {
+						return Integer.MIN_VALUE;
+					}
+					return player.player3EXScore;
+				}
+				return Integer.MIN_VALUE;
+			};
+		case NUMBER_ARENA_EXSCORE_PLAYER4:
+			return (state) -> {
+				if (state instanceof BMSPlayer player) {
+					final PlayerResource.ArenaData arenaData = player.resource.getArenaData();
+					if (!arenaData.isArena()) {
+						return Integer.MIN_VALUE;
+					}
+					if (arenaData.getArenaRoom().getPlayerID4() == null) {
+						return Integer.MIN_VALUE;
+					}
+					return player.player4EXScore;
+				}
+				return Integer.MIN_VALUE;
+			};
 		}
 		
 		return null;

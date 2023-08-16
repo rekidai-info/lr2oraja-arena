@@ -407,6 +407,12 @@ public class SkinProperty {
 	public static final int NUMBER_IR_PREVRANK = 182;
 	public static final int NUMBER_BEST_RATE = 183;
 	public static final int NUMBER_BEST_RATE_AFTERDOT = 184;
+	
+	public static final int NUMBER_ARENA_EXSCORE_PLAYER1 = 401;
+	public static final int NUMBER_ARENA_EXSCORE_PLAYER2 = 402;
+	public static final int NUMBER_ARENA_EXSCORE_PLAYER3 = 403;
+	public static final int NUMBER_ARENA_EXSCORE_PLAYER4 = 404;
+	public static final int OPTION_IS_ARENA = 405;
 
 	public static final int NUMBER_IR_TOTALPLAYER2 = 200;
 	public static final int NUMBER_IR_TOTALPLAYCOUNT = 201;

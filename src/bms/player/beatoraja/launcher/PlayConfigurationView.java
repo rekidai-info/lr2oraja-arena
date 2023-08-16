@@ -314,31 +314,7 @@ public class PlayConfigurationView implements Initializable {
 	}
 
 	private void checkNewVersion() {
-		Runnable newVersionCheckRunnable = () -> {
-			final String message = MainLoader.getVersionChecker().getMessage();
-			final String downloadURL = MainLoader.getVersionChecker().getDownloadURL();
-			Platform.runLater(() -> {
-				newversion.setText(message);
-				if(downloadURL != null) {
-					newversion.setOnAction(new EventHandler<ActionEvent>() {
-
-						@Override
-						public void handle(ActionEvent event) {
-							Desktop desktop = Desktop.getDesktop();
-							URI uri;
-							try {
-								uri = new URI(downloadURL);
-								desktop.browse(uri);
-							} catch (Exception e) {
-								Logger.getGlobal().warning("最新版URLアクセス時例外:" + e.getMessage());
-							}
-						}
-					});
-				}
-			});
-		};
-
-		new Thread(newVersionCheckRunnable).start();
+		newversion.setText("LR2oraja+Arena");
 	}
 
 	public void setBMSInformationLoader(MainLoader loader) {
@@ -366,9 +342,6 @@ public class PlayConfigurationView implements Initializable {
 
         usecim.setSelected(config.isCacheSkinImage());
         discord.setSelected(config.isUseDiscordRPC());
-
-		enableIpfs.setSelected(config.isEnableIpfs());
-		ipfsurl.setText(config.getIpfsUrl());
 
 		if(players.getItems().contains(config.getPlayername())) {
 			players.setValue(config.getPlayername());
@@ -498,9 +471,6 @@ public class PlayConfigurationView implements Initializable {
         // jkoc_hack is integer but *.setJKOC needs boolean type
 
         config.setCacheSkinImage(usecim.isSelected());
-
-		config.setEnableIpfs(enableIpfs.isSelected());
-		config.setIpfsUrl(ipfsurl.getText());
 
 		config.setUseDiscordRPC(discord.isSelected());
 

@@ -3,8 +3,16 @@ package bms.player.beatoraja.select;
 import static bms.player.beatoraja.skin.SkinProperty.*;
 
 import java.nio.file.*;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import bms.player.beatoraja.arena.ArenaConfig;
+import bms.player.beatoraja.arena.ArenaRoom;
+import bms.player.beatoraja.arena.ArenaUtils;
+import bms.player.beatoraja.arena.MQUtils;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.*;
@@ -105,6 +113,96 @@ public class MusicSelector extends MainState {
 	private PixmapResourcePool banners;
 
 	private PixmapResourcePool stagefiles;
+
+	private static enum SelectState {
+		SELECTING, SELECTED
+	};
+	private SelectState selectState;
+	private long createdTimeMillis;
+	private boolean decidedMusic;
+	private int decideMusicCallCount;
+	private long prevSelectMusicTimeMillis;
+
+	private void tryChangeStateToDecide(final SongData songData) {
+		if (resource.getArenaData().isArena()) {
+			if (selectState != SelectState.SELECTING || playedsong != null) {
+				return;
+			}
+
+			decidedMusic = true;
+			decideMusicCallCount = 0;
+			playedsong = songData;
+
+			final ArenaRoom arenaRoom = ArenaUtils.updateLastUpdate(resource.getArenaData().getArenaRoom().getId(), ArenaConfig.INSTANCE.getPlayerID());
+
+			if (arenaRoom != null) {
+				if (arenaRoom.getError() == null) {
+					resource.getArenaData().setArenaRoom(arenaRoom);
+				} else {
+					Logger.getGlobal().log(Level.WARNING, arenaRoom.getError());
+					main.getMessageRenderer().addMessage(arenaRoom.getError(), 2000, Color.RED, 0);
+				}
+			}
+
+			main.getMessageRenderer().addMessage("Checking if the selected song is available...",1900, Color.GOLD,0);
+		} else {
+			changeState(MainStateType.DECIDE);
+		}
+	}
+
+	private SongData getNextSongData() {
+		final String hash = resource.getArenaData().getNextSong();
+		final SongData[] songData = songdb.getSongDatas(new String[] { hash });
+
+		if (songData == null || songData.length < 1) {
+			return null;
+		} else {
+			return songData[0];
+		}
+	}
+
+	private void decideSong(final SongData songData) {
+		if (songData == null) {
+			main.getMessageRenderer().addMessage("Failed to loading BMS : Song not found, or Song has error. Arena mode has been closed.", 1900, Color.RED, 0);
+			backToNonArenaMode();
+		} else {
+			Logger.getGlobal().info((resource.getArenaData().getOrderOfSongs() + 1) + " 曲目の BMS ファイルを読み込みます");
+			selectSong(BMSPlayerMode.PLAY);
+			playedsong = songData;
+			Logger.getGlobal().info("アリーナ " + (resource.getArenaData().getOrderOfSongs() + 1) + " 曲目：" + playedsong.getFullTitle());
+			resource.clear();
+			if (resource.setBMSFile(Paths.get(playedsong.getPath()), play)) {
+				Logger.getGlobal().info("決定画面に遷移します");
+				changeState(MainStateType.DECIDE);
+				selectState = SelectState.SELECTING;
+				decidedMusic = false;
+				decideMusicCallCount = 0;
+				prevSelectMusicTimeMillis = 0;
+			} else {
+				main.getMessageRenderer().addMessage("Failed to loading BMS : Song not found, or Song has error. Arena mode has been closed.", 1900, Color.RED, 0);
+				backToNonArenaMode();
+			}
+		}
+	}
+	
+	private void noticeNextSong() {
+		main.getMessageRenderer().addMessage("by " + resource.getArenaData().getNextPlayer(), 14000, Color.GOLD, 0);
+		main.getMessageRenderer().addMessage("Next: " + playedsong.getDisplayString(), 14000, Color.GOLD, 0);
+		main.getMessageRenderer().addMessage("Change play options within 15 seconds", 14000, Color.GOLD, 0);
+	}
+
+	private void backToNonArenaMode() {
+		selectState = SelectState.SELECTING;
+		createdTimeMillis = 0;
+		decidedMusic = false;
+		decideMusicCallCount = 0;
+		prevSelectMusicTimeMillis = 0;
+		ArenaUtils.close();
+		MQUtils.close();
+		resource.clearArenaData();
+
+		changeState(MainStateType.MUSICSELECT);
+	}
 
 	public MusicSelector(MainController main, boolean songUpdated) {
 		super(main);
@@ -210,6 +308,25 @@ public class MusicSelector extends MainState {
 			search = new SearchTextField(this, resource.getConfig().getResolution());
 			setStage(search);
 		}
+
+		selectState = SelectState.SELECTING;
+		createdTimeMillis = System.currentTimeMillis();
+		decidedMusic = false;
+		decideMusicCallCount = 0;
+		prevSelectMusicTimeMillis = 0;
+		if (resource.getArenaData().isArena()) {
+			final PlayerResource.ArenaData arenaData = resource.getArenaData();
+
+			arenaData.setOrderOfSongs(arenaData.getOrderOfSongs() + 1);
+			if (arenaData.getOrderOfSongs() > 0) {
+				final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+
+				selectState = SelectState.SELECTED;
+				playedsong = getNextSongData();
+
+				noticeNextSong();
+			}
+		}
 	}
 
 	public void prepare() {
@@ -217,6 +334,103 @@ public class MusicSelector extends MainState {
 	}
 
 	public void render() {
+		if (resource.getArenaData().isArena()) {
+			if (selectState == SelectState.SELECTING){
+				final long nowTimeMillis = System.currentTimeMillis();
+
+				if (prevSelectMusicTimeMillis + Duration.ofSeconds(2).toMillis() < nowTimeMillis) {
+					ArenaRoom arenaRoom = resource.getArenaData().getArenaRoom();
+					boolean songAvailable1 = false, songAvailable2 = false, songAvailable3 = false, songAvailable4 = false;
+					if (arenaRoom.getSongHash1() != null) {
+						if (ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID1())) {
+							songAvailable1 = true;
+						} else {
+							songAvailable1 = songdb.getSongDatas(new String[]{arenaRoom.getSongHash1()}).length > 0;
+						}
+					}
+					if (arenaRoom.getSongHash2() != null) {
+						if (ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID2())) {
+							songAvailable2 = true;
+						} else {
+							songAvailable2 = songdb.getSongDatas(new String[]{arenaRoom.getSongHash2()}).length > 0;
+						}
+					}
+					if (arenaRoom.getSongHash3() != null) {
+						if (ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID3())) {
+							songAvailable3 = true;
+						} else {
+							songAvailable3 = songdb.getSongDatas(new String[]{arenaRoom.getSongHash3()}).length > 0;
+						}
+					}
+					if (arenaRoom.getSongHash4() != null) {
+						if (ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID4())) {
+							songAvailable4 = true;
+						} else {
+							songAvailable4 = songdb.getSongDatas(new String[]{arenaRoom.getSongHash4()}).length > 0;
+						}
+					}
+					arenaRoom = ArenaUtils.decideMusic(arenaRoom.getId(), ArenaConfig.INSTANCE.getPlayerID(), !decidedMusic || playedsong == null ? null : playedsong.getSha256(), songAvailable1, songAvailable2, songAvailable3, songAvailable4);
+					if (arenaRoom != null) {
+						if (arenaRoom.getError() == null) {
+							if (decidedMusic) {
+								++decideMusicCallCount;
+							}
+							if (arenaRoom.getPlayerCount() <= 1) {
+								main.getMessageRenderer().addMessage("Your opponent has disconnected. Arena mode has been closed.", 1900, Color.RED, 0);
+								backToNonArenaMode();
+							} else if (decidedMusic && arenaRoom.isSong1Available() > 0 && arenaRoom.isSong2Available() > 0 && arenaRoom.isSong3Available() > 0 && arenaRoom.isSong4Available() > 0) {
+								if (decideMusicCallCount >= 3) {
+									main.getMessageRenderer().addMessage("All players have completed their song selection", 1900, Color.GOLD, 0);
+									resource.getArenaData().setPlayerNames(new ArrayList<String>(Arrays.asList(new String[]{arenaRoom.getPlayerName1(), arenaRoom.getPlayerName2(), arenaRoom.getPlayerName3(), arenaRoom.getPlayerName4()})));
+									resource.getArenaData().setSongHashes(new ArrayList<String>(Arrays.asList(new String[]{arenaRoom.getSongHash1(), arenaRoom.getSongHash2(), arenaRoom.getSongHash3(), arenaRoom.getSongHash4()})));
+
+									playedsong = getNextSongData();
+									createdTimeMillis = System.currentTimeMillis();
+									selectState = SelectState.SELECTED;
+
+									noticeNextSong();
+								}
+							} else if (decidedMusic && ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID1()) && arenaRoom.isSong1Available() == 0 ||
+									ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID2()) && arenaRoom.isSong2Available() == 0 ||
+									ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID3()) && arenaRoom.isSong3Available() == 0 ||
+									ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID4()) && arenaRoom.isSong4Available() == 0) {
+								if (decideMusicCallCount >= 3) {
+									main.getMessageRenderer().addMessage("Selected song is NOT available", 1900, Color.RED, 0);
+									playedsong = null;
+								}
+							} else if (decidedMusic && ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID1()) && arenaRoom.isSong1Available() > 0 ||
+									ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID2()) && arenaRoom.isSong2Available() > 0 ||
+									ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID3()) && arenaRoom.isSong3Available() > 0 ||
+									ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID4()) && arenaRoom.isSong4Available() > 0) {
+								if (decideMusicCallCount >= 3) {
+									main.getMessageRenderer().addMessage("Selected song is available. Please wait until another player has selected a song.", 1900, Color.GOLD, 0);
+								}
+							}
+
+							resource.getArenaData().setArenaRoom(arenaRoom);
+						} else {
+							Logger.getGlobal().log(Level.WARNING, arenaRoom.getError());
+							main.getMessageRenderer().addMessage(arenaRoom.getError(), 2000, Color.RED, 0);
+						}
+					}
+
+					prevSelectMusicTimeMillis = nowTimeMillis;
+				}
+			} else if (selectState == SelectState.SELECTED) {
+				final long nowTimeMillis = System.currentTimeMillis();
+
+				if (createdTimeMillis + Duration.ofSeconds(15).toMillis() < nowTimeMillis) {
+					decideSong(playedsong);
+				}
+			} else {
+				throw new RuntimeException("Invalid select state(" + selectState + ")");
+			}
+		}
+
+		if (getSkin() == null) {
+			return;
+		}
+
 		final Bar current = bar.getSelected();
         if(timer.getNowTime() > getSkin().getInput()){
         	timer.switchTimer(TIMER_STARTINPUT, true);
@@ -281,10 +495,55 @@ public class MusicSelector extends MainState {
 			if (current instanceof SongBar) {
 				SongData song = ((SongBar) current).getSongData();
 				if (((SongBar) current).existsSong()) {
+					if(resource.getArenaData().isArena()) {
+						tryChangeStateToDecide(song);
+					} else{
+						resource.clear();
+						if (resource.setBMSFile(Paths.get(song.getPath()), play)) {
+							final Queue<DirectoryBar> dir = this.getBarRender().getDirectory();
+							if (dir.size > 0 && !(dir.last() instanceof SameFolderBar)) {
+								Array<String> urls = new Array<String>(resource.getConfig().getTableURL());
+
+								boolean isdtable = false;
+								for (DirectoryBar bar : dir) {
+									if (bar instanceof TableBar) {
+										String currenturl = ((TableBar) bar).getUrl();
+										if (currenturl != null && urls.contains(currenturl, false)) {
+											isdtable = true;
+											resource.setTablename(bar.getTitle());
+										}
+									}
+									if (bar instanceof HashBar && isdtable) {
+										resource.setTablelevel(bar.getTitle());
+										break;
+									}
+								}
+							}
+							if (main.getIRStatus().length > 0 && currentir == null) {
+								currentir = new RankingData();
+								main.getRankingDataCache().put(song, config.getLnmode(), currentir);
+							}
+							resource.setRankingData(currentir);
+							resource.setRivalScoreData(current.getRivalScore());
+
+							playedsong = song;
+							changeState(MainStateType.DECIDE);
+						} else {
+							main.getMessageRenderer().addMessage("Failed to loading BMS : Song not found, or Song has error", 1200, Color.RED, 1);
+						}
+					}
+				} else {
+	                execute(MusicSelectCommand.OPEN_DOWNLOAD_SITE);
+				}
+			} else if (current instanceof ExecutableBar) {
+				if(resource.getArenaData().isArena()) {
+					tryChangeStateToDecide(((ExecutableBar) current).getSongData());
+				} else {
+					SongData song = ((ExecutableBar) current).getSongData();
 					resource.clear();
 					if (resource.setBMSFile(Paths.get(song.getPath()), play)) {
 						final Queue<DirectoryBar> dir = this.getBarRender().getDirectory();
-						if(dir.size > 0 && !(dir.last() instanceof SameFolderBar)) {
+						if (dir.size > 0 && !(dir.last() instanceof SameFolderBar)) {
 							Array<String> urls = new Array<String>(resource.getConfig().getTableURL());
 
 							boolean isdtable = false;
@@ -302,64 +561,28 @@ public class MusicSelector extends MainState {
 								}
 							}
 						}
-						if(main.getIRStatus().length > 0 && currentir == null) {
-							currentir = new RankingData();
-							main.getRankingDataCache().put(song, config.getLnmode(), currentir);
-						}
-						resource.setRankingData(currentir);
-						resource.setRivalScoreData(current.getRivalScore());
-						
 						playedsong = song;
 						changeState(MainStateType.DECIDE);
 					} else {
 						main.getMessageRenderer().addMessage("Failed to loading BMS : Song not found, or Song has error", 1200, Color.RED, 1);
 					}
-				} else if (song.getIpfs() != null && main.getMusicDownloadProcessor() != null
-						&& main.getMusicDownloadProcessor().isAlive()) {
-					execute(MusicSelectCommand.DOWNLOAD_IPFS);
-				} else {
-	                execute(MusicSelectCommand.OPEN_DOWNLOAD_SITE);
-				}
-			} else if (current instanceof ExecutableBar) {
-				SongData song = ((ExecutableBar) current).getSongData();
-				resource.clear();
-				if (resource.setBMSFile(Paths.get(song.getPath()), play)) {
-					final Queue<DirectoryBar> dir = this.getBarRender().getDirectory();
-					if(dir.size > 0 && !(dir.last() instanceof SameFolderBar)) {
-						Array<String> urls = new Array<String>(resource.getConfig().getTableURL());
-
-						boolean isdtable = false;
-						for (DirectoryBar bar : dir) {
-							if (bar instanceof TableBar) {
-								String currenturl = ((TableBar) bar).getUrl();
-								if (currenturl != null && urls.contains(currenturl, false)) {
-									isdtable = true;
-									resource.setTablename(bar.getTitle());
-								}
-							}
-							if (bar instanceof HashBar && isdtable) {
-								resource.setTablelevel(bar.getTitle());
-								break;
-							}
-						}
-					}
-					playedsong = song;
-					changeState(MainStateType.DECIDE);
-				} else {
-					main.getMessageRenderer().addMessage("Failed to loading BMS : Song not found, or Song has error", 1200, Color.RED, 1);
 				}
 			}else if (current instanceof GradeBar) {
-				if (play.mode == BMSPlayerMode.Mode.PRACTICE) {
-					play = BMSPlayerMode.PLAY;
+				if (!resource.getArenaData().isArena()) {
+					if (play.mode == BMSPlayerMode.Mode.PRACTICE) {
+						play = BMSPlayerMode.PLAY;
+					}
+					readCourse(play);
 				}
-				readCourse(play);
 			} else if (current instanceof RandomCourseBar) {
-				if (play.mode == BMSPlayerMode.Mode.PRACTICE) {
-					play = BMSPlayerMode.PLAY;
+				if (!resource.getArenaData().isArena()) {
+					if (play.mode == BMSPlayerMode.Mode.PRACTICE) {
+						play = BMSPlayerMode.PLAY;
+					}
+					readRandomCourse(play);
 				}
-				readRandomCourse(play);
 			} else if (current instanceof DirectoryBar) {
-				if(play.mode == BMSPlayerMode.Mode.AUTOPLAY) {
+				if(!resource.getArenaData().isArena() && play.mode == BMSPlayerMode.Mode.AUTOPLAY) {
 					Array<Path> paths = new Array<Path>();
 					for(Bar bar : ((DirectoryBar) current).getChildren()) {
 						if(bar instanceof SongBar && ((SongBar) bar).getSongData() != null && ((SongBar) bar).getSongData().getPath() != null) {
@@ -382,10 +605,12 @@ public class MusicSelector extends MainState {
 	public void input() {
 		final BMSPlayerInputProcessor input = main.getInputProcessor();
 
-		if (input.getControlKeyState(ControlKeys.NUM6)) {
-			changeState(MainStateType.CONFIG);
-		} else if (input.isActivated(KeyCommand.OPEN_SKIN_CONFIGURATION)) {
-			changeState(MainStateType.SKINCONFIG);
+		if (!resource.getArenaData().isArena()) {
+			if (input.getControlKeyState(ControlKeys.NUM6)) {
+				changeState(MainStateType.CONFIG);
+			} else if (input.isActivated(KeyCommand.OPEN_SKIN_CONFIGURATION)) {
+				changeState(MainStateType.SKINCONFIG);
+			}
 		}
 
 		musicinput.input();

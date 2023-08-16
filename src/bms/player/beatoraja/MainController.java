@@ -5,9 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import bms.player.beatoraja.arena.*;
 import bms.player.beatoraja.config.Discord;
 import org.lwjgl.input.Mouse;
 
@@ -42,7 +44,6 @@ import bms.player.beatoraja.skin.SkinObject.SkinOffset;
 import bms.player.beatoraja.skin.SkinProperty;
 import bms.player.beatoraja.song.*;
 import bms.player.beatoraja.stream.StreamController;
-import bms.tool.mdprocessor.MusicDownloadProcessor;
 
 /**
  * アプリケーションのルートクラス
@@ -116,8 +117,6 @@ public class MainController extends ApplicationAdapter {
 	private SystemSoundManager sound;
 
 	private Thread screenshot;
-
-	private MusicDownloadProcessor download;
 	
 	private StreamController streamController;
 
@@ -128,6 +127,9 @@ public class MainController extends ApplicationAdapter {
 	protected TextureRegion white;
 
 	public static Discord discord;
+	
+	private ArenaMatching arenaMatching;
+	private ArenaResult arenaResult;
 
 
 	public MainController(Path f, Config config, PlayerConfig player, BMSPlayerMode auto, boolean songUpdated) {
@@ -146,16 +148,6 @@ public class MainController extends ApplicationAdapter {
 
 		this.bmsfile = f;
 
-		if (config.isEnableIpfs()) {
-			Path ipfspath = Paths.get("ipfs").toAbsolutePath();
-			if (!ipfspath.toFile().exists())
-				ipfspath.toFile().mkdirs();
-			List<String> roots = new ArrayList<>(Arrays.asList(getConfig().getBmsroot()));
-			if (ipfspath.toFile().exists() && !roots.contains(ipfspath.toString())) {
-				roots.add(ipfspath.toString());
-				getConfig().setBmsroot(roots.toArray(new String[roots.size()]));
-			}
-		}
 		try {
 			Class.forName("org.sqlite.JDBC");
 			if(config.isUseSongInfo()) {
@@ -279,6 +271,12 @@ public class MainController extends ApplicationAdapter {
 			break;
 		case SKINCONFIG:
 			newState = skinconfig;
+			break; 
+		case ARENAMATCHING:
+			newState = arenaMatching;
+			break;
+		case ARENARESULT:
+			newState = arenaResult;
 			break;
 		}
 
@@ -350,6 +348,8 @@ public class MainController extends ApplicationAdapter {
 		gresult = new CourseResult(this);
 		keyconfig = new KeyConfiguration(this);
 		skinconfig = new SkinConfiguration(this, player);
+		arenaMatching = new ArenaMatching(this);
+		arenaResult = new ArenaResult(this);
 		if (bmsfile != null) {
 			if(resource.setBMSFile(bmsfile, auto)) {
 				changeState(MainStateType.PLAY);
@@ -397,21 +397,11 @@ public class MainController extends ApplicationAdapter {
 
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 
-		if (config.isEnableIpfs()) {
-			download = new MusicDownloadProcessor(config.getIpfsUrl(), (md5) -> {
-				SongData[] s = getSongDatabase().getSongDatas(md5);
-				String[] result = new String[s.length];
-				for(int i = 0;i < result.length;i++) {
-					result[i] = s[i].getPath();
-				}
-				return result;
-			});
-			download.start(null);
-		}
-
 		if(ir.length > 0) {
 			messageRenderer.addMessage(ir.length + " IR Connection Succeed" ,5000, Color.GREEN, 1);
 		}
+
+		Logger.getGlobal().log(Level.INFO, ArenaConfig.INSTANCE.toString());
 	}
 
 	private long prevtime;
@@ -473,15 +463,57 @@ public class MainController extends ApplicationAdapter {
 			sprite.end();
 		}
 
+		if (resource.getArenaData().isArena()) {
+			if (current instanceof BMSPlayer player) {
+				final ArenaRoom arenaRoom = resource.getArenaData().getArenaRoom();
+				final StringBuilder builder = new StringBuilder(128);
+
+				if (arenaRoom.getPlayerID1() != null && !arenaRoom.getPlayerID1().equals(ArenaConfig.INSTANCE.getPlayerID())) {
+					builder.append(String.format("%s:%d(%d)", arenaRoom.getPlayerName1(), player.player1EXScore - player.myEXScore, player.player1EXScore));
+				}
+				if (arenaRoom.getPlayerID2() != null && !arenaRoom.getPlayerID2().equals(ArenaConfig.INSTANCE.getPlayerID())) {
+					if (!builder.isEmpty()) {
+						builder.append(' ');
+					}
+					builder.append(String.format("%s:%d(%d)", arenaRoom.getPlayerName2(), player.player2EXScore - player.myEXScore, player.player2EXScore));
+				}
+				if (arenaRoom.getPlayerID3() != null && !arenaRoom.getPlayerID3().equals(ArenaConfig.INSTANCE.getPlayerID())) {
+					if (!builder.isEmpty()) {
+						builder.append(' ');
+					}
+					builder.append(String.format("%s:%d(%d)", arenaRoom.getPlayerName3(), player.player3EXScore - player.myEXScore, player.player3EXScore));
+				}
+				if (arenaRoom.getPlayerID4() != null && !arenaRoom.getPlayerID4().equals(ArenaConfig.INSTANCE.getPlayerID())) {
+					if (!builder.isEmpty()) {
+						builder.append(' ');
+					}
+					builder.append(String.format("%s:%d(%d)", arenaRoom.getPlayerName4(), player.player4EXScore - player.myEXScore, player.player4EXScore));
+				}
+
+				sprite.begin();
+				systemfont.setColor(Color.GOLD);
+				systemfont.draw(sprite, builder.toString(), 10, config.getResolution().height - (showfps ? 24 : 2));
+				sprite.end();
+			} else if (current instanceof MusicResult result) {
+				if (result.arenaMatchResult != null && !result.arenaMatchResult.isEmpty()) {
+					sprite.begin();
+					systemfont.setColor(Color.GOLD);
+
+					for (int i = 0; i < result.arenaMatchResult.size(); ++i) {
+						final ArenaMatchResult arenaMatchResult = result.arenaMatchResult.get(i);
+
+						systemfont.draw(sprite, String.format("%d. %s %s %dpt exscore=%d", i + 1, arenaMatchResult.getArenaClass(), arenaMatchResult.getPlayerName(), arenaMatchResult.getPt(), arenaMatchResult.getEXScore()), 10, config.getResolution().height - (showfps ? 24 : 2) - i * 22);
+					}
+
+					sprite.end();
+				}
+			}
+		}
+
 		// show message
 		sprite.begin();
 		messageRenderer.render(current, sprite, 100, config.getResolution().height - 2);
 		sprite.end();
-
-		// TODO renderループに入れるのではなく、MusicDownloadProcessorのListenerとして実装したほうがいいのでは
-		if(download != null && download.isDownload()){
-			downloadIpfsMessageRenderer(download.getMessage());
-		}
 
 		final long time = System.currentTimeMillis();
 		if(time > prevtime) {
@@ -490,12 +522,16 @@ public class MainController extends ApplicationAdapter {
             // event - move pressed
             if (input.isMousePressed()) {
                 input.setMousePressed();
-                current.getSkin().mousePressed(current, input.getMouseButton(), input.getMouseX(), input.getMouseY());
+				if (current.getSkin() != null) {
+					current.getSkin().mousePressed(current, input.getMouseButton(), input.getMouseX(), input.getMouseY());
+				}
             }
             // event - move dragged
             if (input.isMouseDragged()) {
                 input.setMouseDragged();
-                current.getSkin().mouseDragged(current, input.getMouseButton(), input.getMouseX(), input.getMouseY());
+				if (current.getSkin() != null) {
+					current.getSkin().mouseDragged(current, input.getMouseButton(), input.getMouseX(), input.getMouseY());
+				}
             }
 
             // マウスカーソル表示判定
@@ -567,10 +603,6 @@ public class MainController extends ApplicationAdapter {
                 }
             }
 
-			if (download != null && download.getDownloadpath() != null) {
-            	this.updateSong(download.getDownloadpath());
-            	download.setDownloadpath(null);
-            }
 			if (updateSong != null && !updateSong.isAlive()) {
 				selector.getBarRender().updateBar();
 				updateSong = null;
@@ -606,13 +638,19 @@ public class MainController extends ApplicationAdapter {
 		if (skinconfig != null) {
 			skinconfig.dispose();
 		}
+		if (arenaMatching != null) {
+			arenaMatching.dispose();
+		}
+		if (arenaResult != null) {
+			arenaResult.dispose();
+		}
 		resource.dispose();
 //		input.dispose();
 		SkinLoader.getResource().dispose();
 		ShaderManager.dispose();
-		if (download != null) {
-			download.dispose();
-		}
+
+		ArenaUtils.shutdown();
+		MQUtils.shutdown();
 
 		Logger.getGlobal().info("全リソース破棄完了");
 	}
@@ -656,10 +694,6 @@ public class MainController extends ApplicationAdapter {
 
 	public SystemSoundManager getSoundManager() {
 		return sound;
-	}
-
-	public MusicDownloadProcessor getMusicDownloadProcessor(){
-		return download;
 	}
 
 	public MessageRenderer getMessageRenderer() {
@@ -751,17 +785,8 @@ public class MainController extends ApplicationAdapter {
 		}
 	}
 
-	private UpdateThread downloadIpfs;
-
-	public void downloadIpfsMessageRenderer(String message) {
-		if (downloadIpfs == null || !downloadIpfs.isAlive()) {
-			downloadIpfs = new DownloadMessageThread(message);
-			downloadIpfs.start();
-		}
-	}
-
 	public static String getVersion() {
-		return VERSION;
+		return VERSION.replace("beatoraja", "LR2oraja+Arena");
 	}
 
 	abstract class UpdateThread extends Thread {
@@ -814,25 +839,6 @@ public class MainController extends ApplicationAdapter {
 			if (td != null) {
 				accessor.getAccessor().write(td);
 				accessor.setTableData(td);
-			}
-			message.stop();
-		}
-	}
-
-	class DownloadMessageThread extends UpdateThread {
-		public DownloadMessageThread(String message) {
-			super(message);
-		}
-
-		public void run() {
-			Message message = messageRenderer.addMessage(this.message, Color.LIME, 1);
-			while (download != null && download.isDownload() && download.getMessage() != null) {
-				message.setText(download.getMessage());
-				try {
-					sleep(100);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
 			}
 			message.stop();
 		}

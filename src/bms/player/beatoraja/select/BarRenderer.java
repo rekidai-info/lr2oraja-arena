@@ -21,6 +21,7 @@ import bms.player.beatoraja.skin.*;
 import bms.player.beatoraja.skin.Skin.SkinObjectRenderer;
 import bms.player.beatoraja.skin.property.EventFactory.EventType;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.*;
 
@@ -296,6 +297,7 @@ public class BarRenderer {
 		}
 		l.add(new ContainerBar("LAMP UPDATE", lampupdate.toArray(Bar.class)));
 		l.add(new ContainerBar("SCORE UPDATE", scoreupdate.toArray(Bar.class)));
+		l.add(new ContainerBar("ARENA", new Bar[0]));
 		try {
 			Json json = new Json();
 			CommandFolder[] cf = json.fromJson(CommandFolder[].class,
@@ -1112,6 +1114,31 @@ public class BarRenderer {
 		} else {
 			updateBar(null);
 		}
+
+		if (bar instanceof ContainerBar && "ARENA".equals(bar.getTitle()) && !select.resource.getArenaData().isArena()) {
+			final int count = select.main.getSongDatabase().countSongs();
+
+			if (count <= 1000) {
+				select.main.getMessageRenderer().addMessage("Too few BMS songs registered(" + count + "), must be greater than 1000",3000, Color.RED,0);
+			} else {
+				final PlayerConfig config = select.main.getPlayerConfig();
+
+				if (config.getLnmode() == 0) {
+					if (config.isCustomJudge() &&
+							(config.getKeyJudgeWindowRatePerfectGreat() > 100 || config.getKeyJudgeWindowRateGreat() > 100 || config.getKeyJudgeWindowRateGood() > 100 ||
+									config.getScratchJudgeWindowRatePerfectGreat() > 100 || config.getScratchJudgeWindowRateGreat() > 100 || config.getScratchJudgeWindowRateGood() > 100)) {
+						select.main.getMessageRenderer().addMessage("Please unset EXPAND JUDGE", 3000, Color.RED, 0);
+					} else {
+						select.main.changeState(MainState.MainStateType.ARENAMATCHING);
+					}
+				} else {
+					select.main.getMessageRenderer().addMessage("Please change to LN mode", 3000, Color.RED, 0);
+				}
+			}
+
+			return false;
+		}
+
 		Logger.getGlobal().warning("楽曲がありません");
 		return false;
 	}
