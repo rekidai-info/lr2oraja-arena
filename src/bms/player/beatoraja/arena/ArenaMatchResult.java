@@ -3,11 +3,11 @@ package bms.player.beatoraja.arena;
 import java.util.*;
 
 public class ArenaMatchResult {
-    public static List<ArenaMatchResult> from(final ArenaRoom arenaRoom) {
+    public static List<ArenaMatchResult> calcResults(final ArenaRoom arenaRoom, final int songs) {
         final List<List<ArenaMatchResult>> list = new ArrayList<List<ArenaMatchResult>>();
 
-        for (int i = 0; i < arenaRoom.getPlayerCount(); ++i) {
-            list.add(from(arenaRoom, i));
+        for (int i = 0; i < songs; ++i) {
+            list.add(calcResult(arenaRoom, i));
         }
         
         int exScores1 = 0, pts1 = 0;
@@ -76,11 +76,7 @@ public class ArenaMatchResult {
         return result;
     }
 
-    public static List<ArenaMatchResult> from(final ArenaRoom arenaRoom, int order) {
-        if (order < 0 || arenaRoom.getPlayerCount() <= order) {
-            return new ArrayList<ArenaMatchResult>();
-        }
-
+    public static List<ArenaMatchResult> calcResult(final ArenaRoom arenaRoom, int order) {
         final List<ArenaMatchResult> list = new ArrayList<ArenaMatchResult>();
 
         if (arenaRoom.getPlayerID1() != null && arenaRoom.getExScore1() != null && arenaRoom.getExScore1().length >= order + 1 && arenaRoom.getExScore1()[order] >= 0) {

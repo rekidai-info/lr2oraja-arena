@@ -42,7 +42,7 @@ public class ArenaResult extends MainState {
         titleFont = generator.generateFont(parameter);
         createdTimeMillis = System.currentTimeMillis();
         prevUpdateTimeMillis = System.currentTimeMillis();
-        arenaMatchResult = ArenaMatchResult.from(arenaData.getArenaRoom());
+        arenaMatchResult = ArenaMatchResult.calcResults(arenaData.getArenaRoom(), arenaData.getOrderOfSongs());
 
         ArenaUtils.close();
         MQUtils.close();
@@ -73,7 +73,7 @@ public class ArenaResult extends MainState {
             if (arenaRoom != null) {
                 if (arenaRoom.getError() == null) {
                     arenaData.setArenaRoom(arenaRoom);
-                    arenaMatchResult = ArenaMatchResult.from(arenaData.getArenaRoom());
+                    arenaMatchResult = ArenaMatchResult.calcResults(arenaData.getArenaRoom(), arenaData.getOrderOfSongs());
                 } else {
                     Logger.getGlobal().log(Level.WARNING, arenaRoom.getError());
                     main.getMessageRenderer().addMessage(arenaRoom.getError(), 2000, Color.RED, 0);

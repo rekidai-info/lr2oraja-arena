@@ -86,7 +86,7 @@ public class MusicResult extends AbstractResult {
 
 		createdTimeMillis = System.currentTimeMillis();
 		prevUpdateTimeMillis = System.currentTimeMillis();
-		arenaMatchResult = ArenaMatchResult.from(resource.getArenaData().getArenaRoom(), resource.getArenaData().getOrderOfSongs());
+		arenaMatchResult = ArenaMatchResult.calcResult(resource.getArenaData().getArenaRoom(), resource.getArenaData().getOrderOfSongs());
 	}
 	
 	public void prepare() {
@@ -187,7 +187,7 @@ public class MusicResult extends AbstractResult {
 				if (arenaRoom != null) {
 					if (arenaRoom.getError() == null) {
 						resource.getArenaData().setArenaRoom(arenaRoom);
-						arenaMatchResult = ArenaMatchResult.from(arenaRoom, resource.getArenaData().getOrderOfSongs());
+						arenaMatchResult = ArenaMatchResult.calcResult(arenaRoom, resource.getArenaData().getOrderOfSongs());
 					} else {
 						Logger.getGlobal().log(Level.WARNING, arenaRoom.getError());
 						main.getMessageRenderer().addMessage(arenaRoom.getError(), 2000, Color.RED, 0);
