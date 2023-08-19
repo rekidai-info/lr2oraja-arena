@@ -40,10 +40,7 @@ public class ArenaConfig {
         if (playerName == null || playerName.isBlank()) {
             throw new RuntimeException("Set PLAYER_NAME");
         }
-        playerID = UUID.randomUUID().toString().replaceAll("-", ""); // String.class.cast(properties.get("UNIQUE_PLAYER_ID_WORLDWIDE"));
-        // if (!Pattern.compile("[A-Z0-9]{12,32}").asMatchPredicate().test(playerID)) {
-        //     throw new RuntimeException("UNIQUE_PLAYER_ID_WORLDWIDE must be a string of at least 12 and no more than 32 characters, consisting only of uppercase letters or numbers");
-        // }
+        playerID = UUID.randomUUID().toString().replaceAll("-", "");
         arenaClass = String.class.cast(properties.get("IIDX_ARENA_CLASS"));
         if (arenaClass == null || arenaClass.isBlank()) {
             throw new RuntimeException("Set IIDX_ARENA_CLASS");
@@ -128,7 +125,7 @@ public class ArenaConfig {
             default:
                 int n = 100;
                 for (int i = 0; i < arenaClass.length(); ++i) {
-                    n += ((int) arenaClass.charAt(i)) * (i + 1);
+                    n += ((int) arenaClass.charAt(i)) * (i + 1) * 10;
                 }
                 arenaClassNumber = n;
                 break;
