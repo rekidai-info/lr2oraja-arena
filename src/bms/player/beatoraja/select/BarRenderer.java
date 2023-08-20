@@ -1116,23 +1116,27 @@ public class BarRenderer {
 		}
 
 		if (bar instanceof ContainerBar && "ARENA".equals(bar.getTitle()) && !select.resource.getArenaData().isArena()) {
-			final int count = select.main.getSongDatabase().countSongs();
-
-			if (count <= 1000) {
-				select.main.getMessageRenderer().addMessage("Too few BMS songs registered(" + count + "), must be greater than 1000",3000, Color.RED,0);
+			if (select.main.getPlayerConfig().getMode() == null) {
+				select.main.getMessageRenderer().addMessage("Select MODE (ALLKEY is not available)", 3000, Color.RED, 0);
 			} else {
-				final PlayerConfig config = select.main.getPlayerConfig();
+				final int count = select.main.getSongDatabase().countSongs();
 
-				if (config.getLnmode() == 0) {
-					if (config.isCustomJudge() &&
-							(config.getKeyJudgeWindowRatePerfectGreat() > 100 || config.getKeyJudgeWindowRateGreat() > 100 || config.getKeyJudgeWindowRateGood() > 100 ||
-									config.getScratchJudgeWindowRatePerfectGreat() > 100 || config.getScratchJudgeWindowRateGreat() > 100 || config.getScratchJudgeWindowRateGood() > 100)) {
-						select.main.getMessageRenderer().addMessage("Please unset EXPAND JUDGE", 3000, Color.RED, 0);
-					} else {
-						select.main.changeState(MainState.MainStateType.ARENAMATCHING);
-					}
+				if (count <= 1000) {
+					select.main.getMessageRenderer().addMessage("Too few BMS songs registered(" + count + "), must be greater than 1000", 3000, Color.RED, 0);
 				} else {
-					select.main.getMessageRenderer().addMessage("Please change to LN mode", 3000, Color.RED, 0);
+					final PlayerConfig config = select.main.getPlayerConfig();
+
+					if (config.getLnmode() == 0) {
+						if (config.isCustomJudge() &&
+								(config.getKeyJudgeWindowRatePerfectGreat() > 100 || config.getKeyJudgeWindowRateGreat() > 100 || config.getKeyJudgeWindowRateGood() > 100 ||
+										config.getScratchJudgeWindowRatePerfectGreat() > 100 || config.getScratchJudgeWindowRateGreat() > 100 || config.getScratchJudgeWindowRateGood() > 100)) {
+							select.main.getMessageRenderer().addMessage("Please unset EXPAND JUDGE", 3000, Color.RED, 0);
+						} else {
+							select.main.changeState(MainState.MainStateType.ARENAMATCHING);
+						}
+					} else {
+						select.main.getMessageRenderer().addMessage("Please change to LN mode", 3000, Color.RED, 0);
+					}
 				}
 			}
 
