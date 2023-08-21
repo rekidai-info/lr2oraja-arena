@@ -5,6 +5,7 @@ import static bms.player.beatoraja.skin.SkinProperty.*;
 import java.util.Arrays;
 import java.util.Calendar;
 
+import bms.player.beatoraja.result.MusicResult;
 import com.badlogic.gdx.Gdx;
 
 import bms.model.BMSModel;
@@ -468,57 +469,65 @@ public class IntegerPropertyFactory {
 			};
 		case NUMBER_ARENA_EXSCORE_PLAYER1:
 			return (state) -> {
+				final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+				if (!arenaData.isArena()) {
+					return Integer.MIN_VALUE;
+				}
+				if (arenaData.getArenaRoom().getPlayerID1() == null) {
+					return Integer.MIN_VALUE;
+				}
 				if (state instanceof BMSPlayer player) {
-					final PlayerResource.ArenaData arenaData = player.resource.getArenaData();
-					if (!arenaData.isArena()) {
-						return Integer.MIN_VALUE;
-					}
-					if (arenaData.getArenaRoom().getPlayerID1() == null) {
-						return Integer.MIN_VALUE;
-					}
 					return player.player1EXScore;
+				} else if (state instanceof MusicResult mr) {
+					return mr.player1EXScore;
 				}
 				return Integer.MIN_VALUE;
 			};
 		case NUMBER_ARENA_EXSCORE_PLAYER2:
 			return (state) -> {
+				final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+				if (!arenaData.isArena()) {
+					return Integer.MIN_VALUE;
+				}
+				if (arenaData.getArenaRoom().getPlayerID2() == null) {
+					return Integer.MIN_VALUE;
+				}
 				if (state instanceof BMSPlayer player) {
-					final PlayerResource.ArenaData arenaData = player.resource.getArenaData();
-					if (!arenaData.isArena()) {
-						return Integer.MIN_VALUE;
-					}
-					if (arenaData.getArenaRoom().getPlayerID2() == null) {
-						return Integer.MIN_VALUE;
-					}
 					return player.player2EXScore;
+				} else if (state instanceof MusicResult mr) {
+					return mr.player2EXScore;
 				}
 				return Integer.MIN_VALUE;
 			};
 		case NUMBER_ARENA_EXSCORE_PLAYER3:
 			return (state) -> {
+				final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+				if (!arenaData.isArena()) {
+					return Integer.MIN_VALUE;
+				}
+				if (arenaData.getArenaRoom().getPlayerID3() == null) {
+					return Integer.MIN_VALUE;
+				}
 				if (state instanceof BMSPlayer player) {
-					final PlayerResource.ArenaData arenaData = player.resource.getArenaData();
-					if (!arenaData.isArena()) {
-						return Integer.MIN_VALUE;
-					}
-					if (arenaData.getArenaRoom().getPlayerID3() == null) {
-						return Integer.MIN_VALUE;
-					}
 					return player.player3EXScore;
+				} else if (state instanceof MusicResult mr) {
+					return mr.player3EXScore;
 				}
 				return Integer.MIN_VALUE;
 			};
 		case NUMBER_ARENA_EXSCORE_PLAYER4:
 			return (state) -> {
+				final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+				if (!arenaData.isArena()) {
+					return Integer.MIN_VALUE;
+				}
+				if (arenaData.getArenaRoom().getPlayerID4() == null) {
+					return Integer.MIN_VALUE;
+				}
 				if (state instanceof BMSPlayer player) {
-					final PlayerResource.ArenaData arenaData = player.resource.getArenaData();
-					if (!arenaData.isArena()) {
-						return Integer.MIN_VALUE;
-					}
-					if (arenaData.getArenaRoom().getPlayerID4() == null) {
-						return Integer.MIN_VALUE;
-					}
 					return player.player4EXScore;
+				} else if (state instanceof MusicResult mr) {
+					return mr.player4EXScore;
 				}
 				return Integer.MIN_VALUE;
 			};

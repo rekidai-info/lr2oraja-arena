@@ -43,6 +43,37 @@ public class MusicResult extends AbstractResult {
 	private long createdTimeMillis;
 	private long prevUpdateTimeMillis;
 	public List<ArenaMatchResult> arenaMatchResult;
+	public int player1EXScore;
+	public int player2EXScore;
+	public int player3EXScore;
+	public int player4EXScore;
+	
+	private void setEachScore() {
+		if (arenaMatchResult == null || arenaMatchResult.isEmpty()) {
+			return;
+		}
+
+		for (final ArenaMatchResult result : arenaMatchResult) {
+			if (result == null) {
+				continue;
+			}
+
+			switch (result.getNo()) {
+				case 0:
+					player1EXScore = result.getEXScore();
+					break;
+				case 1:
+					player2EXScore = result.getEXScore();
+					break;
+				case 2:
+					player3EXScore = result.getEXScore();
+					break;
+				case 3:
+					player4EXScore = result.getEXScore();
+					break;
+			}
+		}
+	}
 
 	public MusicResult(MainController main) {
 		super(main);
@@ -87,6 +118,11 @@ public class MusicResult extends AbstractResult {
 		createdTimeMillis = System.currentTimeMillis();
 		prevUpdateTimeMillis = System.currentTimeMillis();
 		arenaMatchResult = ArenaMatchResult.calcResult(resource.getArenaData().getArenaRoom(), resource.getArenaData().getOrderOfSongs());
+		player1EXScore = Integer.MIN_VALUE;
+		player2EXScore = Integer.MIN_VALUE;
+		player3EXScore = Integer.MIN_VALUE;
+		player4EXScore = Integer.MIN_VALUE;
+		setEachScore();
 	}
 	
 	public void prepare() {
@@ -188,6 +224,7 @@ public class MusicResult extends AbstractResult {
 					if (arenaRoom.getError() == null) {
 						resource.getArenaData().setArenaRoom(arenaRoom);
 						arenaMatchResult = ArenaMatchResult.calcResult(arenaRoom, resource.getArenaData().getOrderOfSongs());
+						setEachScore();
 					} else {
 						Logger.getGlobal().log(Level.WARNING, arenaRoom.getError());
 						main.getMessageRenderer().addMessage(arenaRoom.getError(), 2000, Color.RED, 0);
