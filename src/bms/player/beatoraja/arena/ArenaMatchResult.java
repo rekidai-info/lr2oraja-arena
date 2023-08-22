@@ -43,16 +43,16 @@ public class ArenaMatchResult {
         final List<ArenaMatchResult> result = new ArrayList<ArenaMatchResult>();
 
         if (arenaRoom.getPlayerID1() != null) {
-            result.add(new ArenaMatchResult(0, arenaRoom.getPlayerID1(), arenaRoom.getPlayerName1(), arenaRoom.getPlayerArenaClass1(), exScores1, pts1));
+            result.add(new ArenaMatchResult(0, arenaRoom.getPlayerID1(), arenaRoom.getPlayerName1(), arenaRoom.getPlayerArenaClass1(), arenaRoom.getPlayerSkillClass1(), exScores1, pts1));
         }
         if (arenaRoom.getPlayerID2() != null) {
-            result.add(new ArenaMatchResult(1, arenaRoom.getPlayerID2(), arenaRoom.getPlayerName2(), arenaRoom.getPlayerArenaClass2(), exScores2, pts2));
+            result.add(new ArenaMatchResult(1, arenaRoom.getPlayerID2(), arenaRoom.getPlayerName2(), arenaRoom.getPlayerArenaClass2(), arenaRoom.getPlayerSkillClass2(), exScores2, pts2));
         }
         if (arenaRoom.getPlayerID3() != null) {
-            result.add(new ArenaMatchResult(2, arenaRoom.getPlayerID3(), arenaRoom.getPlayerName3(), arenaRoom.getPlayerArenaClass3(), exScores3, pts3));
+            result.add(new ArenaMatchResult(2, arenaRoom.getPlayerID3(), arenaRoom.getPlayerName3(), arenaRoom.getPlayerArenaClass3(), arenaRoom.getPlayerSkillClass3(), exScores3, pts3));
         }
         if (arenaRoom.getPlayerID4() != null) {
-            result.add(new ArenaMatchResult(3, arenaRoom.getPlayerID4(), arenaRoom.getPlayerName4(), arenaRoom.getPlayerArenaClass4(), exScores4, pts4));
+            result.add(new ArenaMatchResult(3, arenaRoom.getPlayerID4(), arenaRoom.getPlayerName4(), arenaRoom.getPlayerArenaClass4(), arenaRoom.getPlayerSkillClass4(), exScores4, pts4));
         }
 
         Collections.sort(result, (lhs, rhs) -> {
@@ -86,6 +86,7 @@ public class ArenaMatchResult {
             result.setPlayerID(arenaRoom.getPlayerID1());
             result.setPlayerName(arenaRoom.getPlayerName1());
             result.setArenaClass(arenaRoom.getPlayerArenaClass1());
+            result.setSkillClass(arenaRoom.getPlayerSkillClass1());
             result.setEXScore(arenaRoom.getExScore1()[order]);
             result.setPt(0);
 
@@ -98,6 +99,7 @@ public class ArenaMatchResult {
             result.setPlayerID(arenaRoom.getPlayerID2());
             result.setPlayerName(arenaRoom.getPlayerName2());
             result.setArenaClass(arenaRoom.getPlayerArenaClass2());
+            result.setSkillClass(arenaRoom.getPlayerSkillClass2());
             result.setEXScore(arenaRoom.getExScore2()[order]);
             result.setPt(0);
 
@@ -110,6 +112,7 @@ public class ArenaMatchResult {
             result.setPlayerID(arenaRoom.getPlayerID3());
             result.setPlayerName(arenaRoom.getPlayerName3());
             result.setArenaClass(arenaRoom.getPlayerArenaClass3());
+            result.setSkillClass(arenaRoom.getPlayerSkillClass3());
             result.setEXScore(arenaRoom.getExScore3()[order]);
             result.setPt(0);
 
@@ -122,6 +125,7 @@ public class ArenaMatchResult {
             result.setPlayerID(arenaRoom.getPlayerID4());
             result.setPlayerName(arenaRoom.getPlayerName4());
             result.setArenaClass(arenaRoom.getPlayerArenaClass4());
+            result.setSkillClass(arenaRoom.getPlayerSkillClass4());
             result.setEXScore(arenaRoom.getExScore4()[order]);
             result.setPt(0);
 
@@ -161,17 +165,19 @@ public class ArenaMatchResult {
     private String playerID;
     private String playerName;
     private String arenaClass;
+    private String skillClass;
     private int exScore;
     private int pt;
 
     public ArenaMatchResult() {
     }
 
-    public ArenaMatchResult(int no, String playerID, String playerName, String arenaClass, int exScore, int pt) {
+    public ArenaMatchResult(int no, String playerID, String playerName, String arenaClass, String skillClass, int exScore, int pt) {
         this.no = no;
         this.playerID = playerID;
         this.playerName = playerName;
         this.arenaClass = arenaClass;
+        this.skillClass = skillClass;
         this.exScore = exScore;
         this.pt = pt;
     }
@@ -208,6 +214,10 @@ public class ArenaMatchResult {
         this.arenaClass = arenaClass;
     }
 
+    public String getSkillClass() { return skillClass; }
+
+    public void setSkillClass(String skillClass) { this.skillClass = skillClass; }
+
     public int getEXScore() {
         return exScore;
     }
@@ -231,6 +241,7 @@ public class ArenaMatchResult {
                 ", playerID='" + playerID + '\'' +
                 ", playerName='" + playerName + '\'' +
                 ", arenaClass='" + arenaClass + '\'' +
+                ", skillClass='" + skillClass + '\'' +
                 ", exScore=" + exScore +
                 ", pt=" + pt +
                 '}';

@@ -117,12 +117,14 @@ public class MusicResult extends AbstractResult {
 
 		createdTimeMillis = System.currentTimeMillis();
 		prevUpdateTimeMillis = System.currentTimeMillis();
-		arenaMatchResult = ArenaMatchResult.calcResult(resource.getArenaData().getArenaRoom(), resource.getArenaData().getOrderOfSongs());
 		player1EXScore = Integer.MIN_VALUE;
 		player2EXScore = Integer.MIN_VALUE;
 		player3EXScore = Integer.MIN_VALUE;
 		player4EXScore = Integer.MIN_VALUE;
-		setEachScore();
+		if (resource.getArenaData().isArena()) {
+			arenaMatchResult = ArenaMatchResult.calcResult(resource.getArenaData().getArenaRoom(), resource.getArenaData().getOrderOfSongs());
+			setEachScore();
+		}
 	}
 	
 	public void prepare() {

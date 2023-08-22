@@ -2,6 +2,7 @@ package bms.player.beatoraja.arena;
 
 import bms.player.beatoraja.PlayerResource;
 
+import bms.player.beatoraja.arena.font.FontUtils;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -39,6 +40,7 @@ public class ArenaResult extends MainState {
                 Gdx.files.internal("skin/default/VL-Gothic-Regular.ttf"));
         FreeTypeFontParameter parameter = new FreeTypeFontParameter();
         parameter.size = 28;
+        parameter.characters = FontUtils.CHARACTERS;
         titleFont = generator.generateFont(parameter);
         createdTimeMillis = System.currentTimeMillis();
         prevUpdateTimeMillis = System.currentTimeMillis();
@@ -90,7 +92,7 @@ public class ArenaResult extends MainState {
             for (int i = 0; i < arenaMatchResult.size(); ++i) {
                 final ArenaMatchResult result = arenaMatchResult.get(i);
 
-                titleFont.draw(main.getSpriteBatch(), String.format("%d. %s %s %dpt exscore=%d", i + 1, result.getArenaClass(), result.getPlayerName(), result.getPt(), result.getEXScore()), 10, main.getConfig().getResolution().height - 24 - i * 22);
+                titleFont.draw(main.getSpriteBatch(), String.format("%d. %s %s %s %dpt EXScore=%d", i + 1, result.getArenaClass(), result.getSkillClass(), result.getPlayerName(), result.getPt(), result.getEXScore()), 10, main.getConfig().getResolution().height - 24 - i * 22);
             }
 
             main.getSpriteBatch().end();

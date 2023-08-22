@@ -9,10 +9,7 @@ import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -21,8 +18,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import bms.model.Mode;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ArenaUtils {
     private static final int VERSION = 1;
@@ -49,8 +44,8 @@ public class ArenaUtils {
         return client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    public static ArenaRoom joinArena(final Mode playMode, final String playerID, final String playerName, final String arenaClass, final int arenaClassNumber, final boolean playerAllowSkip) {
-        final Map<String, String> params = Map.of("client_version", String.valueOf(VERSION), "play_mode", playMode.name(), "player_id", playerID, "player_name", playerName, "player_arena_class", arenaClass, "arena_class_number", String.valueOf(arenaClassNumber), "player_allow_skip", String.valueOf(playerAllowSkip));
+    public static ArenaRoom joinArena(final Mode playMode, final String playerID, final String playerName, final String arenaClass, final int arenaClassNumber, final String skillClass, final boolean playerAllowSkip) {
+        final Map<String, String> params = Map.of("client_version", String.valueOf(VERSION), "play_mode", playMode.name(), "player_id", playerID, "player_name", playerName, "player_arena_class", arenaClass, "arena_class_number", String.valueOf(arenaClassNumber), "player_skill_class", skillClass, "player_allow_skip", String.valueOf(playerAllowSkip));
 
         try {
             final HttpResponse<String> response = post(params, "/arena/join");
@@ -181,8 +176,8 @@ public class ArenaUtils {
         return null;
     }
 
-    public static Future<?> joinArenaAsync(final Mode playMode, final String playerID, final String playerName, final String arenaClass, final int arenaClassNumber, final boolean playerAllowSkip) {
-        return THREAD_POOL.submit(() -> joinArena(playMode, playerID, playerName, arenaClass, arenaClassNumber, playerAllowSkip));
+    public static Future<?> joinArenaAsync(final Mode playMode, final String playerID, final String playerName, final String arenaClass, final int arenaClassNumber, final String skillClass, final boolean playerAllowSkip) {
+        return THREAD_POOL.submit(() -> joinArena(playMode, playerID, playerName, arenaClass, arenaClassNumber, skillClass, playerAllowSkip));
     }
 
     public static Future<?> decideMusicAsync(final String roomID, final String playerID, final String songHash, final boolean songAvailable1, final boolean songAvailable2, final boolean songAvailable3, final boolean songAvailable4) {

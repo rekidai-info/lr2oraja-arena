@@ -7,7 +7,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class ArenaRoom {
@@ -25,18 +24,6 @@ public class ArenaRoom {
 
 	@JsonProperty("arena_class_number")
     private int arenaClassNumber;
-
-	@JsonProperty("player_ip1")
-    private String playerIP1;
-
-	@JsonProperty("player_ip2")
-    private String playerIP2;
-
-	@JsonProperty("player_ip3")
-    private String playerIP3;
-
-	@JsonProperty("player_ip4")
-    private String playerIP4;
 
 	@JsonProperty("player_id1")
     private String playerID1;
@@ -73,6 +60,18 @@ public class ArenaRoom {
 
     @JsonProperty("player_arena_class4")
     private String playerArenaClass4;
+
+    @JsonProperty("player_skill_class1")
+    private String playerSkillClass1;
+
+    @JsonProperty("player_skill_class2")
+    private String playerSkillClass2;
+
+    @JsonProperty("player_skill_class3")
+    private String playerSkillClass3;
+
+    @JsonProperty("player_skill_class4")
+    private String playerSkillClass4;
 
 	@JsonProperty("player_allow_skip1")
     private Boolean playerAllowSkip1;
@@ -331,38 +330,6 @@ public class ArenaRoom {
         this.arenaClassNumber = arenaClassNumber;
     }
 
-    public String getPlayerIP1() {
-        return playerIP1;
-    }
-
-    public void setPlayerIP1(String playerIP1) {
-        this.playerIP1 = playerIP1;
-    }
-
-    public String getPlayerIP2() {
-        return playerIP2;
-    }
-
-    public void setPlayerIP2(String playerIP2) {
-        this.playerIP2 = playerIP2;
-    }
-
-    public String getPlayerIP3() {
-        return playerIP3;
-    }
-
-    public void setPlayerIP3(String playerIP3) {
-        this.playerIP3 = playerIP3;
-    }
-
-    public String getPlayerIP4() {
-        return playerIP4;
-    }
-
-    public void setPlayerIP4(String playerIP4) {
-        this.playerIP4 = playerIP4;
-    }
-
     public String getPlayerID1() {
         return playerID1;
     }
@@ -453,6 +420,38 @@ public class ArenaRoom {
 
     public String getPlayerArenaClass4() {
         return playerArenaClass4;
+    }
+
+    public String getPlayerSkillClass1() {
+        return playerSkillClass1;
+    }
+
+    public void setPlayerSkillClass1(String playerSkillClass1) {
+        this.playerSkillClass1 = playerSkillClass1;
+    }
+
+    public String getPlayerSkillClass2() {
+        return playerSkillClass2;
+    }
+
+    public void setPlayerSkillClass2(String playerSkillClass2) {
+        this.playerSkillClass2 = playerSkillClass2;
+    }
+
+    public String getPlayerSkillClass3() {
+        return playerSkillClass3;
+    }
+
+    public void setPlayerSkillClass3(String playerSkillClass3) {
+        this.playerSkillClass3 = playerSkillClass3;
+    }
+
+    public String getPlayerSkillClass4() {
+        return playerSkillClass4;
+    }
+
+    public void setPlayerSkillClass4(String playerSkillClass4) {
+        this.playerSkillClass4 = playerSkillClass4;
     }
 
     public void setPlayerArenaClass4(String playerArenaClass4) {
@@ -699,10 +698,6 @@ public class ArenaRoom {
                 ", playerConfirmed=" + playerConfirmed +
                 ", playMode='" + playMode + '\'' +
                 ", arenaClassNumber=" + arenaClassNumber +
-                ", playerIP1='" + playerIP1 + '\'' +
-                ", playerIP2='" + playerIP2 + '\'' +
-                ", playerIP3='" + playerIP3 + '\'' +
-                ", playerIP4='" + playerIP4 + '\'' +
                 ", playerID1='" + playerID1 + '\'' +
                 ", playerID2='" + playerID2 + '\'' +
                 ", playerID3='" + playerID3 + '\'' +
@@ -715,6 +710,10 @@ public class ArenaRoom {
                 ", playerArenaClass2='" + playerArenaClass2 + '\'' +
                 ", playerArenaClass3='" + playerArenaClass3 + '\'' +
                 ", playerArenaClass4='" + playerArenaClass4 + '\'' +
+                ", playerSkillClass1='" + playerSkillClass1 + '\'' +
+                ", playerSkillClass2='" + playerSkillClass2 + '\'' +
+                ", playerSkillClass3='" + playerSkillClass3 + '\'' +
+                ", playerSkillClass4='" + playerSkillClass4 + '\'' +
                 ", playerAllowSkip1=" + playerAllowSkip1 +
                 ", playerAllowSkip2=" + playerAllowSkip2 +
                 ", playerAllowSkip3=" + playerAllowSkip3 +

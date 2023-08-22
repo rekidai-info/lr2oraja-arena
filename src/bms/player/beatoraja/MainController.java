@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import bms.player.beatoraja.arena.*;
+import bms.player.beatoraja.arena.font.FontUtils;
 import bms.player.beatoraja.config.Discord;
 import org.lwjgl.input.Mouse;
 
@@ -321,6 +322,7 @@ public class MainController extends ApplicationAdapter {
 			generator = new FreeTypeFontGenerator(Gdx.files.internal("skin/default/VL-Gothic-Regular.ttf"));
 			FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 			parameter.size = 24;
+			parameter.characters = FontUtils.CHARACTERS;
 			systemfont = generator.generateFont(parameter);
 		} catch (GdxRuntimeException e) {
 			Logger.getGlobal().severe("System Font１読み込み失敗");
@@ -401,6 +403,7 @@ public class MainController extends ApplicationAdapter {
 			messageRenderer.addMessage(ir.length + " IR Connection Succeed" ,5000, Color.GREEN, 1);
 		}
 
+		ArenaConfig.INSTANCE.calcSkillClass(playdata);
 		Logger.getGlobal().log(Level.INFO, ArenaConfig.INSTANCE.toString());
 	}
 
@@ -502,7 +505,7 @@ public class MainController extends ApplicationAdapter {
 					for (int i = 0; i < result.arenaMatchResult.size(); ++i) {
 						final ArenaMatchResult arenaMatchResult = result.arenaMatchResult.get(i);
 
-						systemfont.draw(sprite, String.format("%d. %s %s %dpt exscore=%d", i + 1, arenaMatchResult.getArenaClass(), arenaMatchResult.getPlayerName(), arenaMatchResult.getPt(), arenaMatchResult.getEXScore()), 10, config.getResolution().height - (showfps ? 24 : 2) - i * 22);
+						systemfont.draw(sprite, String.format("%d. %s %s %s %dpt EXScore=%d", i + 1, arenaMatchResult.getArenaClass(), arenaMatchResult.getSkillClass(), arenaMatchResult.getPlayerName(), arenaMatchResult.getPt(), arenaMatchResult.getEXScore()), 10, config.getResolution().height - (showfps ? 24 : 2) - i * 22);
 					}
 
 					sprite.end();

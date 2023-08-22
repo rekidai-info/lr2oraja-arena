@@ -1,12 +1,10 @@
 package bms.player.beatoraja.arena;
 
 import java.time.Duration;
-import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import bms.player.beatoraja.arena.MQUtils;
-import org.zeromq.ZMQ;
+import bms.player.beatoraja.arena.font.FontUtils;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
@@ -52,6 +50,7 @@ public class ArenaMatching extends MainState {
                 Gdx.files.internal("skin/default/VL-Gothic-Regular.ttf"));
         FreeTypeFontParameter parameter = new FreeTypeFontParameter();
         parameter.size = 28;
+        parameter.characters = FontUtils.CHARACTERS;
         titleFont = generator.generateFont(parameter);
 
         backToNonArenaMode();
@@ -82,7 +81,7 @@ public class ArenaMatching extends MainState {
             switch (matchingState) {
                 case JOINING: 
                     if (prevJoinTimeMillis + Duration.ofSeconds(2).toMillis() < nowTimeMillis) { // 2 秒毎にリクエストを投げる事で、サーバー側で死活判定を行えるようにする
-                        final ArenaRoom arenaRoom = ArenaUtils.joinArena(main.getPlayerConfig().getMode(), ArenaConfig.INSTANCE.getPlayerID(), ArenaConfig.INSTANCE.getPlayerName(), ArenaConfig.INSTANCE.getArenaClass(), ArenaConfig.INSTANCE.getArenaClassNumber(), playerAllowSkip);
+                        final ArenaRoom arenaRoom = ArenaUtils.joinArena(main.getPlayerConfig().getMode(), ArenaConfig.INSTANCE.getPlayerID(), ArenaConfig.INSTANCE.getPlayerName(), ArenaConfig.INSTANCE.getArenaClass(), ArenaConfig.INSTANCE.getArenaClassNumber(), ArenaConfig.INSTANCE.getSkillClass(), playerAllowSkip);
 
                         if (arenaRoom != null) {
                             if (arenaRoom.getError() == null) {
@@ -145,25 +144,25 @@ public class ArenaMatching extends MainState {
                 titleFont.setColor(Color.GOLD);
                 titleFont.draw(main.getSpriteBatch(), prefix + suffix, 10,
                         main.getConfig().getResolution().height - 100);
-                titleFont.draw(main.getSpriteBatch(), ArenaConfig.INSTANCE.getArenaClass() + " " + ArenaConfig.INSTANCE.getPlayerName() + " vs.", 10,
+                titleFont.draw(main.getSpriteBatch(), ArenaConfig.INSTANCE.getArenaClass() + " " + ArenaConfig.INSTANCE.getSkillClass() + " " + ArenaConfig.INSTANCE.getPlayerName() + " vs.", 10,
                         main.getConfig().getResolution().height - 150);
                 final ArenaRoom arenaRoom = main.getPlayerResource().getArenaData().getArenaRoom();
                 int y = main.getConfig().getResolution().height - 180;
                 if (arenaRoom != null && arenaRoom.getError() == null) {
                     if (arenaRoom.getPlayerName1() != null && !ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID1())) {
-                        titleFont.draw(main.getSpriteBatch(), arenaRoom.getPlayerArenaClass1() + " " + arenaRoom.getPlayerName1(), 10, y);
+                        titleFont.draw(main.getSpriteBatch(), arenaRoom.getPlayerArenaClass1() + " " + arenaRoom.getPlayerSkillClass1() + " " + arenaRoom.getPlayerName1(), 10, y);
                         y -= 30;
                     }
                     if (arenaRoom.getPlayerName2() != null && !ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID2())) {
-                        titleFont.draw(main.getSpriteBatch(), arenaRoom.getPlayerArenaClass2() + " " + arenaRoom.getPlayerName2(), 10, y);
+                        titleFont.draw(main.getSpriteBatch(), arenaRoom.getPlayerArenaClass2() + " " + arenaRoom.getPlayerSkillClass2() + " " + arenaRoom.getPlayerName2(), 10, y);
                         y -= 30;
                     }
                     if (arenaRoom.getPlayerName3() != null && !ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID3())) {
-                        titleFont.draw(main.getSpriteBatch(), arenaRoom.getPlayerArenaClass3() + " " + arenaRoom.getPlayerName3(), 10, y);
+                        titleFont.draw(main.getSpriteBatch(), arenaRoom.getPlayerArenaClass3() + " " + arenaRoom.getPlayerSkillClass3() + " " + arenaRoom.getPlayerName3(), 10, y);
                         y -= 30;
                     }
                     if (arenaRoom.getPlayerName4() != null && !ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID4())) {
-                        titleFont.draw(main.getSpriteBatch(), arenaRoom.getPlayerArenaClass4() + " " + arenaRoom.getPlayerName4(), 10, y);
+                        titleFont.draw(main.getSpriteBatch(), arenaRoom.getPlayerArenaClass4() + " " + arenaRoom.getPlayerSkillClass4() + " " + arenaRoom.getPlayerName4(), 10, y);
                         y -= 30;
                     }
                 }
