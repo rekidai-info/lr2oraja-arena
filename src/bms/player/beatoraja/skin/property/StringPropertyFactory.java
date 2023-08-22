@@ -308,6 +308,94 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerName4() == null ? "" : arenaRoom.getPlayerName4();
 		}),
+		arena_arena_class_player1(1035, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerArenaClass1() == null ? "" : arenaRoom.getPlayerArenaClass1();
+		}),
+		arena_arena_class_player2(1036, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerArenaClass2() == null ? "" : arenaRoom.getPlayerArenaClass2();
+		}),
+		arena_arena_class_player3(1037, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerArenaClass3() == null ? "" : arenaRoom.getPlayerArenaClass3();
+		}),
+		arena_arena_class_player4(1038, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerArenaClass4() == null ? "" : arenaRoom.getPlayerArenaClass4();
+		}),
+		arena_skill_class_player1(1039, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerSkillClass1() == null ? "" : arenaRoom.getPlayerSkillClass1();
+		}),
+		arena_skill_class_player2(1040, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerSkillClass2() == null ? "" : arenaRoom.getPlayerSkillClass2();
+		}),
+		arena_skill_class_player3(1041, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerSkillClass3() == null ? "" : arenaRoom.getPlayerSkillClass3();
+		}),
+		arena_skill_class_player4(1042, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerSkillClass4() == null ? "" : arenaRoom.getPlayerSkillClass4();
+		}),
 		;
 		
 		/**
