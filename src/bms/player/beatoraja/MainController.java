@@ -77,7 +77,7 @@ public class MainController extends ApplicationAdapter {
 	private PlayerResource resource;
 
 	private FreeTypeFontGenerator generator;
-	private BitmapFont systemfont;
+	private BitmapFont systemfont, systemfont2;
 	private MessageRenderer messageRenderer;
 
 	private MainState current;
@@ -324,6 +324,9 @@ public class MainController extends ApplicationAdapter {
 			parameter.size = 24;
 			parameter.characters = FontUtils.CHARACTERS;
 			systemfont = generator.generateFont(parameter);
+
+			parameter.size = 36;
+			systemfont2 = generator.generateFont(parameter);
 		} catch (GdxRuntimeException e) {
 			Logger.getGlobal().severe("System Font１読み込み失敗");
 		}
@@ -467,7 +470,7 @@ public class MainController extends ApplicationAdapter {
 		}
 
 		if (resource.getArenaData().isArena()) {
-			if (current instanceof BMSPlayer player) {
+			if (current instanceof BMSPlayer player && systemfont != null) {
 				final ArenaRoom arenaRoom = resource.getArenaData().getArenaRoom();
 				final StringBuilder builder = new StringBuilder(128);
 
@@ -497,15 +500,15 @@ public class MainController extends ApplicationAdapter {
 				systemfont.setColor(Color.GOLD);
 				systemfont.draw(sprite, builder.toString(), 10, config.getResolution().height - (showfps ? 24 : 2));
 				sprite.end();
-			} else if (current instanceof MusicResult result) {
+			} else if (current instanceof MusicResult result && systemfont2 != null) {
 				if (result.arenaMatchResult != null && !result.arenaMatchResult.isEmpty()) {
 					sprite.begin();
-					systemfont.setColor(Color.GOLD);
+					systemfont2.setColor(Color.GOLD);
 
 					for (int i = 0; i < result.arenaMatchResult.size(); ++i) {
 						final ArenaMatchResult arenaMatchResult = result.arenaMatchResult.get(i);
 
-						systemfont.draw(sprite, String.format("%d. %s %s %s %dpt EXScore=%d", i + 1, arenaMatchResult.getArenaClass(), arenaMatchResult.getSkillClass(), arenaMatchResult.getPlayerName(), arenaMatchResult.getPt(), arenaMatchResult.getEXScore()), 10, config.getResolution().height - (showfps ? 24 : 2) - i * 22);
+						systemfont2.draw(sprite, String.format("%d. %s %s %s %dpt EXScore=%d", i + 1, arenaMatchResult.getArenaClass(), arenaMatchResult.getSkillClass(), arenaMatchResult.getPlayerName(), arenaMatchResult.getPt(), arenaMatchResult.getEXScore()), 10, config.getResolution().height - (showfps ? 24 : 2) - i * 40);
 					}
 
 					sprite.end();

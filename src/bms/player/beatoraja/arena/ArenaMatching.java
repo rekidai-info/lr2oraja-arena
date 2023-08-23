@@ -49,7 +49,7 @@ public class ArenaMatching extends MainState {
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
                 Gdx.files.internal("skin/default/VL-Gothic-Regular.ttf"));
         FreeTypeFontParameter parameter = new FreeTypeFontParameter();
-        parameter.size = 28;
+        parameter.size = 36;
         parameter.characters = FontUtils.CHARACTERS;
         titleFont = generator.generateFont(parameter);
 
@@ -145,33 +145,33 @@ public class ArenaMatching extends MainState {
                 titleFont.draw(main.getSpriteBatch(), prefix + suffix, 10,
                         main.getConfig().getResolution().height - 100);
                 titleFont.draw(main.getSpriteBatch(), ArenaConfig.INSTANCE.getArenaClass() + " " + ArenaConfig.INSTANCE.getSkillClass() + " " + ArenaConfig.INSTANCE.getPlayerName() + " vs.", 10,
-                        main.getConfig().getResolution().height - 150);
+                        main.getConfig().getResolution().height - 160);
                 final ArenaRoom arenaRoom = main.getPlayerResource().getArenaData().getArenaRoom();
-                int y = main.getConfig().getResolution().height - 180;
+                int y = main.getConfig().getResolution().height - 200;
                 if (arenaRoom != null && arenaRoom.getError() == null) {
                     if (arenaRoom.getPlayerName1() != null && !ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID1())) {
                         titleFont.draw(main.getSpriteBatch(), arenaRoom.getPlayerArenaClass1() + " " + arenaRoom.getPlayerSkillClass1() + " " + arenaRoom.getPlayerName1(), 10, y);
-                        y -= 30;
+                        y -= 40;
                     }
                     if (arenaRoom.getPlayerName2() != null && !ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID2())) {
                         titleFont.draw(main.getSpriteBatch(), arenaRoom.getPlayerArenaClass2() + " " + arenaRoom.getPlayerSkillClass2() + " " + arenaRoom.getPlayerName2(), 10, y);
-                        y -= 30;
+                        y -= 40;
                     }
                     if (arenaRoom.getPlayerName3() != null && !ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID3())) {
                         titleFont.draw(main.getSpriteBatch(), arenaRoom.getPlayerArenaClass3() + " " + arenaRoom.getPlayerSkillClass3() + " " + arenaRoom.getPlayerName3(), 10, y);
-                        y -= 30;
+                        y -= 40;
                     }
                     if (arenaRoom.getPlayerName4() != null && !ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID4())) {
                         titleFont.draw(main.getSpriteBatch(), arenaRoom.getPlayerArenaClass4() + " " + arenaRoom.getPlayerSkillClass4() + " " + arenaRoom.getPlayerName4(), 10, y);
-                        y -= 30;
+                        y -= 40;
                     }
                 }
                 if (playerAllowSkip) {
                     titleFont.draw(main.getSpriteBatch(), "Press ENTER to wait until all 4 players are matched", 10,
-                            main.getConfig().getResolution().height - 400);
+                            main.getConfig().getResolution().height - 440);
                 } else {
                     titleFont.draw(main.getSpriteBatch(), "Press ENTER to skip matching", 10,
-                            main.getConfig().getResolution().height - 400);
+                            main.getConfig().getResolution().height - 440);
                 }
                 main.getSpriteBatch().end();
             }

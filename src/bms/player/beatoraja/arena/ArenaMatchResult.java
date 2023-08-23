@@ -6,7 +6,7 @@ public class ArenaMatchResult {
     public static List<ArenaMatchResult> calcResults(final ArenaRoom arenaRoom, final int songs) {
         final List<List<ArenaMatchResult>> list = new ArrayList<List<ArenaMatchResult>>();
 
-        for (int i = 0; i < songs; ++i) {
+        for (int i = 0; i <= songs; ++i) {
             list.add(calcResult(arenaRoom, i));
         }
         

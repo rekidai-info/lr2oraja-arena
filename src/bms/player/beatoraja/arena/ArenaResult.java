@@ -22,10 +22,11 @@ import java.util.logging.Logger;
 public class ArenaResult extends MainState {
     private boolean cancel;
     private PlayerResource.ArenaData arenaData;
-    private BitmapFont titleFont;
+    private BitmapFont titleFont, titleFont2;
     private long createdTimeMillis;
     private long prevUpdateTimeMillis;
     private List<ArenaMatchResult> arenaMatchResult;
+    private List<ArenaMatchEachResult> arenaMatchEachResult;
 
     public ArenaResult(final MainController main) {
         super(main);
@@ -39,12 +40,15 @@ public class ArenaResult extends MainState {
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(
                 Gdx.files.internal("skin/default/VL-Gothic-Regular.ttf"));
         FreeTypeFontParameter parameter = new FreeTypeFontParameter();
-        parameter.size = 28;
+        parameter.size = 36;
         parameter.characters = FontUtils.CHARACTERS;
         titleFont = generator.generateFont(parameter);
+        parameter.size = 28;
+        titleFont2 = generator.generateFont(parameter);
         createdTimeMillis = System.currentTimeMillis();
         prevUpdateTimeMillis = System.currentTimeMillis();
         arenaMatchResult = ArenaMatchResult.calcResults(arenaData.getArenaRoom(), arenaData.getOrderOfSongs());
+        arenaMatchEachResult = ArenaMatchEachResult.calcResults(arenaData.getArenaRoom(), arenaData.getOrderOfSongs(), main.getSongDatabase());
 
         ArenaUtils.close();
         MQUtils.close();
@@ -76,6 +80,7 @@ public class ArenaResult extends MainState {
                 if (arenaRoom.getError() == null) {
                     arenaData.setArenaRoom(arenaRoom);
                     arenaMatchResult = ArenaMatchResult.calcResults(arenaData.getArenaRoom(), arenaData.getOrderOfSongs());
+                    arenaMatchEachResult = ArenaMatchEachResult.calcResults(arenaData.getArenaRoom(), arenaData.getOrderOfSongs(), main.getSongDatabase());
                 } else {
                     Logger.getGlobal().log(Level.WARNING, arenaRoom.getError());
                     main.getMessageRenderer().addMessage(arenaRoom.getError(), 2000, Color.RED, 0);
@@ -85,14 +90,36 @@ public class ArenaResult extends MainState {
             prevUpdateTimeMillis = nowTimeMillis;
         }
 
-        if (arenaMatchResult != null && !arenaMatchResult.isEmpty()) {
+        if (arenaMatchResult != null && !arenaMatchResult.isEmpty() && arenaMatchEachResult != null && !arenaMatchEachResult.isEmpty()) {
             main.getSpriteBatch().begin();
             titleFont.setColor(Color.GOLD);
+
+            int y = main.getConfig().getResolution().height - 24;
 
             for (int i = 0; i < arenaMatchResult.size(); ++i) {
                 final ArenaMatchResult result = arenaMatchResult.get(i);
 
-                titleFont.draw(main.getSpriteBatch(), String.format("%d. %s %s %s %dpt EXScore=%d", i + 1, result.getArenaClass(), result.getSkillClass(), result.getPlayerName(), result.getPt(), result.getEXScore()), 10, main.getConfig().getResolution().height - 24 - i * 22);
+                titleFont.draw(main.getSpriteBatch(), String.format("%d. %s %s %s %dpt EXScore=%d", i + 1, result.getArenaClass(), result.getSkillClass(), result.getPlayerName(), result.getPt(), result.getEXScore()), 10, y);
+                y -= 40;
+            }
+
+            y -= 20;
+
+            for (final ArenaMatchEachResult result : arenaMatchEachResult) {
+                titleFont2.draw(main.getSpriteBatch(), result.getSong(), 10, y);
+                y -= 30;
+
+                final List<ArenaMatchResult> results = result.getResults();
+
+                if (results != null && !results.isEmpty()) {
+                    for (int i = 0; i < results.size(); ++i) {
+                        final ArenaMatchResult result2 = results.get(i);
+
+                        titleFont2.draw(main.getSpriteBatch(), String.format("%d. %s %s %s %dpt EXScore=%d", i + 1, result2.getArenaClass(), result2.getSkillClass(), result2.getPlayerName(), result2.getPt(), result2.getEXScore()), 10, y);
+                        y -= 30;
+                    }
+                }
+                y -= 20;
             }
 
             main.getSpriteBatch().end();
@@ -112,6 +139,10 @@ public class ArenaResult extends MainState {
     public void dispose() {
         super.dispose();
 
+        if (titleFont2 != null) {
+            titleFont2.dispose();
+            titleFont2 = null;
+        }
         if (titleFont != null) {
             titleFont.dispose();
             titleFont = null;
