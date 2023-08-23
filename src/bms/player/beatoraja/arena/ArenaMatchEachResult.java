@@ -15,7 +15,7 @@ public class ArenaMatchEachResult {
                 break;
             }
 
-            final String hash = hashes[songs];
+            final String hash = hashes[order];
 
             if (hash == null || hash.isBlank()) {
                 continue;
