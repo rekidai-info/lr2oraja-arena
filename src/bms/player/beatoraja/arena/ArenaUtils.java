@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import bms.model.Mode;
 
 public class ArenaUtils {
-    private static final int VERSION = 1;
+    private static final int VERSION = 2;
     private static final ExecutorService THREAD_POOL = Executors.newSingleThreadExecutor();
 
     public static void close() {
@@ -39,7 +39,7 @@ public class ArenaUtils {
                 .collect(Collectors.joining("&"));
         final BodyPublisher publisher = HttpRequest.BodyPublishers.ofString(form);
         final HttpRequest request = HttpRequest.newBuilder(URI.create(ArenaConfig.INSTANCE.getHttpServerUrl() + path))
-                .POST(publisher).headers("Content-Type", "application/x-www-form-urlencoded").build();
+                .timeout(Duration.ofSeconds(5)).POST(publisher).headers("Content-Type", "application/x-www-form-urlencoded").build();
 
         return client.send(request, HttpResponse.BodyHandlers.ofString());
     }

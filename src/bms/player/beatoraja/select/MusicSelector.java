@@ -420,6 +420,13 @@ public class MusicSelector extends MainState {
 				final long nowTimeMillis = System.currentTimeMillis();
 
 				if (createdTimeMillis + Duration.ofSeconds(15).toMillis() < nowTimeMillis) {
+					config.setLnmode(0);
+					config.setBpmguide(false);
+					if (config.isCustomJudge() &&
+							(config.getKeyJudgeWindowRatePerfectGreat() > 100 || config.getKeyJudgeWindowRateGreat() > 100 || config.getKeyJudgeWindowRateGood() > 100 ||
+									config.getScratchJudgeWindowRatePerfectGreat() > 100 || config.getScratchJudgeWindowRateGreat() > 100 || config.getScratchJudgeWindowRateGood() > 100)) {
+						config.setCustomJudge(false);
+					}
 					decideSong(playedsong);
 				}
 			} else {
