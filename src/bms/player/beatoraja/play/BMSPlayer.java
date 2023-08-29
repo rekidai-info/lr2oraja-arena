@@ -103,6 +103,7 @@ public class BMSPlayer extends MainState {
 
 	public static Discord discord;
 
+	private long sendUpdateLastUpdateTimeMillis;
 	private long sendReadyPlayMusicTimeMillis;
 	private long prevSendScoreTimeMillis;
 	private int prevEXScore;
@@ -111,6 +112,25 @@ public class BMSPlayer extends MainState {
 	public int player2EXScore;
 	public int player3EXScore;
 	public int player4EXScore;
+	public String player1Option;
+	public String player2Option;
+	public String player3Option;
+	public String player4Option;
+
+	private void setPlayerOption(final ArenaRoom arenaRoom) {
+		if (arenaRoom.getPlayerID1() != null && arenaRoom.getPlayerOption1() != null) {
+			player1Option = arenaRoom.getPlayerOption1();
+		}
+		if (arenaRoom.getPlayerID2() != null && arenaRoom.getPlayerOption2() != null) {
+			player2Option = arenaRoom.getPlayerOption2();
+		}
+		if (arenaRoom.getPlayerID3() != null && arenaRoom.getPlayerOption3() != null) {
+			player3Option = arenaRoom.getPlayerOption3();
+		}
+		if (arenaRoom.getPlayerID4() != null && arenaRoom.getPlayerOption4() != null) {
+			player4Option = arenaRoom.getPlayerOption4();
+		}
+	}
 
 	private void syncScore() {
 		final long nowTimeMillis = System.currentTimeMillis();
@@ -161,6 +181,7 @@ public class BMSPlayer extends MainState {
 	}
 
 	private void backToNonArenaMode() {
+		sendUpdateLastUpdateTimeMillis = 0;
 		sendReadyPlayMusicTimeMillis = 0;
 		prevSendScoreTimeMillis = 0;
 		prevEXScore = 0;
@@ -169,6 +190,10 @@ public class BMSPlayer extends MainState {
 		player2EXScore = 0;
 		player3EXScore = 0;
 		player4EXScore = 0;
+		player1Option = "-";
+		player2Option = "-";
+		player3Option = "-";
+		player4Option = "-";
 		ArenaUtils.close();
 		MQUtils.close();
 		resource.clearArenaData();
@@ -538,6 +563,7 @@ public class BMSPlayer extends MainState {
 		keyinput = new KeyInputProccessor(this, laneProperty);
 		PlayerConfig config = resource.getPlayerConfig();
 
+		sendUpdateLastUpdateTimeMillis = 0;
 		sendReadyPlayMusicTimeMillis = 0;
 		prevSendScoreTimeMillis = 0;
 		prevEXScore = 0;
@@ -546,6 +572,10 @@ public class BMSPlayer extends MainState {
 		player2EXScore = 0;
 		player3EXScore = 0;
 		player4EXScore = 0;
+		player1Option = "-";
+		player2Option = "-";
+		player3Option = "-";
+		player4Option = "-";
 
 		loadSkin(getSkinType());
 
@@ -645,10 +675,11 @@ public class BMSPlayer extends MainState {
 				play(SOUND_READY);
 				Logger.getGlobal().info("STATE_READYに移行");
 				if (resource.getArenaData().isArena()) {
-					final ArenaRoom arenaRoom = ArenaUtils.updateLastUpdate(resource.getArenaData().getArenaRoom().getId(), null);
+					final ArenaRoom arenaRoom = ArenaUtils.updateLastUpdate(resource.getArenaData().getArenaRoom().getId(),null);
 					if (arenaRoom != null) {
 						if (arenaRoom.getError() == null) {
 							resource.getArenaData().setArenaRoom(arenaRoom);
+							setPlayerOption(arenaRoom);
 						} else {
 							Logger.getGlobal().log(Level.WARNING, arenaRoom.getError());
 							main.getMessageRenderer().addMessage(arenaRoom.getError(), 2000, Color.RED, 0);
@@ -659,6 +690,30 @@ public class BMSPlayer extends MainState {
 			if(!timer.isTimerOn(TIMER_PM_CHARA_1P_NEUTRAL) || !timer.isTimerOn(TIMER_PM_CHARA_2P_NEUTRAL)){
 				timer.setTimerOn(TIMER_PM_CHARA_1P_NEUTRAL);
 				timer.setTimerOn(TIMER_PM_CHARA_2P_NEUTRAL);
+			}
+			if (resource.getArenaData().isArena()) {
+				final long nowTimeMillis = System.currentTimeMillis();
+
+				if (sendUpdateLastUpdateTimeMillis + Duration.ofSeconds(3).toMillis() < nowTimeMillis) {
+					final ArenaRoom arenaRoom = ArenaUtils.updateLastUpdate(resource.getArenaData().getArenaRoom().getId(), ArenaConfig.INSTANCE.getPlayerID());
+
+					if (arenaRoom != null) {
+						if (arenaRoom.getError() == null) {
+							resource.getArenaData().setArenaRoom(arenaRoom);
+							setPlayerOption(arenaRoom);
+							if (arenaRoom.getPlayerCount() <= 1) {
+								main.getMessageRenderer().addMessage("Your opponent has disconnected. Arena mode has been closed.", 3000, Color.RED, 0);
+								backToNonArenaMode();
+								main.changeState(MainStateType.MUSICSELECT);
+							}
+						} else {
+							Logger.getGlobal().log(Level.WARNING, arenaRoom.getError());
+							main.getMessageRenderer().addMessage(arenaRoom.getError(), 2000, Color.RED, 0);
+						}
+					}
+
+					sendUpdateLastUpdateTimeMillis = nowTimeMillis;
+				}
 			}
 			break;
 		// practice mode
@@ -744,6 +799,7 @@ public class BMSPlayer extends MainState {
 						if (arenaRoom != null) {
 							if (arenaRoom.getError() == null) {
 								resource.getArenaData().setArenaRoom(arenaRoom);
+								setPlayerOption(arenaRoom);
 								if (arenaRoom.getPlayerCount() <= 1) {
 									main.getMessageRenderer().addMessage("Your opponent has disconnected. Arena mode has been closed.", 3000, Color.RED, 0);
 									backToNonArenaMode();
@@ -899,6 +955,7 @@ public class BMSPlayer extends MainState {
 			break;
 		// 閉店処理
 		case STATE_FAILED:
+			sendUpdateLastUpdateTimeMillis = 0;
 			sendReadyPlayMusicTimeMillis = 0;
 			prevSendScoreTimeMillis = 0;
 			prevEXScore = 0;
@@ -954,6 +1011,7 @@ public class BMSPlayer extends MainState {
 			break;
 		// 完奏処理
 		case STATE_FINISHED:
+			sendUpdateLastUpdateTimeMillis = 0;
 			sendReadyPlayMusicTimeMillis = 0;
 			prevSendScoreTimeMillis = 0;
 			prevEXScore = 0;

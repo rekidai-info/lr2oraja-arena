@@ -13,6 +13,7 @@ import bms.player.beatoraja.arena.ArenaConfig;
 import bms.player.beatoraja.arena.ArenaRoom;
 import bms.player.beatoraja.arena.ArenaUtils;
 import bms.player.beatoraja.arena.MQUtils;
+import bms.player.beatoraja.pattern.Random;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.*;
@@ -172,6 +173,40 @@ public class MusicSelector extends MainState {
 			Logger.getGlobal().info("アリーナ " + (resource.getArenaData().getOrderOfSongs() + 1) + " 曲目：" + playedsong.getFullTitle());
 			resource.clear();
 			if (resource.setBMSFile(Paths.get(playedsong.getPath()), play)) {
+				try {
+					final boolean isDouble = config.getMode() != null && config.getMode().player == 2;
+					String option;
+
+					if (isDouble) {
+						option = Random.getRandom(config.getRandom()).name() + "/" + Random.getRandom(config.getRandom2()).name();
+						if (config.getDoubleoption() == 1) {
+							option += "/FLIP";
+						} else {
+							option += "/-";
+						}
+					} else {
+						option = Random.getRandom(config.getRandom()).name();
+					}
+					
+					if (option == null || option.isBlank()) {
+						option = "-";
+					}
+
+					final ArenaRoom arenaRoom = ArenaUtils.updateOption(resource.getArenaData().getArenaRoom().getId(), ArenaConfig.INSTANCE.getPlayerID(), option);
+
+					if (arenaRoom != null) {
+						if (arenaRoom.getError() == null) {
+							resource.getArenaData().setArenaRoom(arenaRoom);
+						} else {
+							Logger.getGlobal().log(Level.WARNING, arenaRoom.getError());
+							main.getMessageRenderer().addMessage(arenaRoom.getError(), 2000, Color.RED, 0);
+						}
+					}
+				} catch (final Exception e) {
+					Logger.getGlobal().log(Level.WARNING, e.getLocalizedMessage());
+					main.getMessageRenderer().addMessage(e.getLocalizedMessage(), 2000, Color.RED, 0);
+				}
+
 				Logger.getGlobal().info("決定画面に遷移します");
 				changeState(MainStateType.DECIDE);
 				selectState = SelectState.SELECTING;

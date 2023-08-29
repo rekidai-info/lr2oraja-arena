@@ -85,6 +85,18 @@ public class ArenaRoom {
 	@JsonProperty("player_allow_skip4")
     private Boolean playerAllowSkip4;
 
+    @JsonProperty("player_option1")
+    private String playerOption1;
+
+    @JsonProperty("player_option2")
+    private String playerOption2;
+
+    @JsonProperty("player_option3")
+    private String playerOption3;
+
+    @JsonProperty("player_option4")
+    private String playerOption4;
+
     @JsonProperty("player_ready_play_music1")
     private Boolean playerReadyPlayMusic1;
 
@@ -490,6 +502,38 @@ public class ArenaRoom {
         this.playerAllowSkip4 = playerAllowSkip4;
     }
 
+    public String getPlayerOption1() {
+        return playerOption1;
+    }
+
+    public void setPlayerOption1(String playerOption1) {
+        this.playerOption1 = playerOption1;
+    }
+
+    public String getPlayerOption2() {
+        return playerOption2;
+    }
+
+    public void setPlayerOption2(String playerOption2) {
+        this.playerOption2 = playerOption2;
+    }
+
+    public String getPlayerOption3() {
+        return playerOption3;
+    }
+
+    public void setPlayerOption3(String playerOption3) {
+        this.playerOption3 = playerOption3;
+    }
+
+    public String getPlayerOption4() {
+        return playerOption4;
+    }
+
+    public void setPlayerOption4(String playerOption4) {
+        this.playerOption4 = playerOption4;
+    }
+
     public Boolean getPlayerReadyPlayMusic1() {
         return playerReadyPlayMusic1;
     }
@@ -718,6 +762,10 @@ public class ArenaRoom {
                 ", playerAllowSkip2=" + playerAllowSkip2 +
                 ", playerAllowSkip3=" + playerAllowSkip3 +
                 ", playerAllowSkip4=" + playerAllowSkip4 +
+                ", playerOption1='" + playerOption1 + '\'' +
+                ", playerOption2='" + playerOption2 + '\'' +
+                ", playerOption3='" + playerOption3 + '\'' +
+                ", playerOption4='" + playerOption4 + '\'' +
                 ", playerReadyPlayMusic1=" + playerReadyPlayMusic1 +
                 ", playerReadyPlayMusic2=" + playerReadyPlayMusic2 +
                 ", playerReadyPlayMusic3=" + playerReadyPlayMusic3 +

@@ -124,6 +124,29 @@ public class ArenaUtils {
         return null;
     }
 
+    public static ArenaRoom updateOption(final String roomID, final String playerID, final String option) {
+        final Map<String, String> params = Map.of("client_version", String.valueOf(VERSION),"id", roomID,"player_id", playerID,"player_option", option);
+
+        try {
+            final HttpResponse<String> response = post(params, "/arena/update_option");
+
+            if (response == null) {
+                Logger.getGlobal().log(Level.WARNING, "Response is null");
+                return null;
+            }
+
+            if (response.statusCode() == 200) {
+                return ArenaRoom.fromJson(response.body());
+            } else {
+                Logger.getGlobal().log(Level.WARNING, "Response is not ok" + response);
+            }
+        } catch (final Exception e) {
+            Logger.getGlobal().log(Level.WARNING, e.getLocalizedMessage(), e);
+        }
+
+        return null;
+    }
+
     public static ArenaRoom updateScore(final String roomID, final String playerID, final int songOrder, final int score) {
         final Map<String, String> params = Map.of("client_version", String.valueOf(VERSION),"id", roomID,"player_id", playerID,"song_order", String.valueOf(songOrder), "score", String.valueOf(score));
 
@@ -176,23 +199,27 @@ public class ArenaUtils {
         return null;
     }
 
-    public static Future<?> joinArenaAsync(final Mode playMode, final String playerID, final String playerName, final String arenaClass, final int arenaClassNumber, final String skillClass, final boolean playerAllowSkip) {
+    public static Future<ArenaRoom> joinArenaAsync(final Mode playMode, final String playerID, final String playerName, final String arenaClass, final int arenaClassNumber, final String skillClass, final boolean playerAllowSkip) {
         return THREAD_POOL.submit(() -> joinArena(playMode, playerID, playerName, arenaClass, arenaClassNumber, skillClass, playerAllowSkip));
     }
 
-    public static Future<?> decideMusicAsync(final String roomID, final String playerID, final String songHash, final boolean songAvailable1, final boolean songAvailable2, final boolean songAvailable3, final boolean songAvailable4) {
+    public static Future<ArenaRoom> decideMusicAsync(final String roomID, final String playerID, final String songHash, final boolean songAvailable1, final boolean songAvailable2, final boolean songAvailable3, final boolean songAvailable4) {
         return THREAD_POOL.submit(() -> decideMusic(roomID, playerID, songHash, songAvailable1, songAvailable2, songAvailable3, songAvailable4));
     }
 
-    public static Future<?> readyPlayMusicAsync(final String roomID, final String playerID, final boolean playerReadyPlayMusic) {
+    public static Future<ArenaRoom> readyPlayMusicAsync(final String roomID, final String playerID, final boolean playerReadyPlayMusic) {
         return THREAD_POOL.submit(() -> readyPlayMusic(roomID, playerID, playerReadyPlayMusic));
     }
 
-    public static Future<?> updateScoreAsync(final String roomID, final String playerID, final int songOrder, final int score) {
+    public static Future<ArenaRoom> updateOptionAsync(final String roomID, final String playerID, final String option) {
+        return THREAD_POOL.submit(() -> updateOption(roomID, playerID, option));
+    }
+
+    public static Future<ArenaRoom> updateScoreAsync(final String roomID, final String playerID, final int songOrder, final int score) {
         return THREAD_POOL.submit(() -> updateScore(roomID, playerID, songOrder, score));
     }
 
-    public static Future<?> updateLastUpdateAsync(final String roomID, final String playerID) {
+    public static Future<ArenaRoom> updateLastUpdateAsync(final String roomID, final String playerID) {
         return THREAD_POOL.submit(() -> updateLastUpdate(roomID, playerID));
     }
 }

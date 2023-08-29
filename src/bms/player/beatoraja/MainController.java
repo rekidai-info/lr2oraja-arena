@@ -475,25 +475,41 @@ public class MainController extends ApplicationAdapter {
 				final StringBuilder builder = new StringBuilder(128);
 
 				if (arenaRoom.getPlayerID1() != null && !arenaRoom.getPlayerID1().equals(ArenaConfig.INSTANCE.getPlayerID())) {
-					builder.append(String.format("%s:%d(%d)", arenaRoom.getPlayerName1(), player.player1EXScore - player.myEXScore, player.player1EXScore));
+					if (player.getState() == BMSPlayer.STATE_PRELOAD || player.getState() == BMSPlayer.STATE_READY) {
+						builder.append(String.format("%s:%s", arenaRoom.getPlayerName1(), player.player1Option));
+					} else {
+						builder.append(String.format("%s:%d(%d)", arenaRoom.getPlayerName1(), player.player1EXScore - player.myEXScore, player.player1EXScore));
+					}
 				}
 				if (arenaRoom.getPlayerID2() != null && !arenaRoom.getPlayerID2().equals(ArenaConfig.INSTANCE.getPlayerID())) {
 					if (!builder.isEmpty()) {
 						builder.append(' ');
 					}
-					builder.append(String.format("%s:%d(%d)", arenaRoom.getPlayerName2(), player.player2EXScore - player.myEXScore, player.player2EXScore));
+					if (player.getState() == BMSPlayer.STATE_PRELOAD || player.getState() == BMSPlayer.STATE_READY) {
+						builder.append(String.format("%s:%s", arenaRoom.getPlayerName2(), player.player2Option));
+					} else {
+						builder.append(String.format("%s:%d(%d)", arenaRoom.getPlayerName2(), player.player2EXScore - player.myEXScore, player.player2EXScore));
+					}
 				}
 				if (arenaRoom.getPlayerID3() != null && !arenaRoom.getPlayerID3().equals(ArenaConfig.INSTANCE.getPlayerID())) {
 					if (!builder.isEmpty()) {
 						builder.append(' ');
 					}
-					builder.append(String.format("%s:%d(%d)", arenaRoom.getPlayerName3(), player.player3EXScore - player.myEXScore, player.player3EXScore));
+					if (player.getState() == BMSPlayer.STATE_PRELOAD || player.getState() == BMSPlayer.STATE_READY) {
+						builder.append(String.format("%s:%s", arenaRoom.getPlayerName3(), player.player3Option));
+					} else {
+						builder.append(String.format("%s:%d(%d)", arenaRoom.getPlayerName3(), player.player3EXScore - player.myEXScore, player.player3EXScore));
+					}
 				}
 				if (arenaRoom.getPlayerID4() != null && !arenaRoom.getPlayerID4().equals(ArenaConfig.INSTANCE.getPlayerID())) {
 					if (!builder.isEmpty()) {
 						builder.append(' ');
 					}
-					builder.append(String.format("%s:%d(%d)", arenaRoom.getPlayerName4(), player.player4EXScore - player.myEXScore, player.player4EXScore));
+					if (player.getState() == BMSPlayer.STATE_PRELOAD || player.getState() == BMSPlayer.STATE_READY) {
+						builder.append(String.format("%s:%s", arenaRoom.getPlayerName4(), player.player4Option));
+					} else {
+						builder.append(String.format("%s:%d(%d)", arenaRoom.getPlayerName4(), player.player4EXScore - player.myEXScore, player.player4EXScore));
+					}
 				}
 
 				sprite.begin();
