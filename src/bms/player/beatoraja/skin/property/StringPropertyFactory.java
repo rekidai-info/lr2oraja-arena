@@ -396,6 +396,50 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerSkillClass4() == null ? "" : arenaRoom.getPlayerSkillClass4();
 		}),
+		arena_option_player1(1043, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerOption1() == null ? "" : arenaRoom.getPlayerOption1();
+		}),
+		arena_option_player2(1044, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerOption2() == null ? "" : arenaRoom.getPlayerOption2();
+		}),
+		arena_option_player3(1045, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerOption3() == null ? "" : arenaRoom.getPlayerOption3();
+		}),
+		arena_option_player4(1046, state -> {
+			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
+			if (!arenaData.isArena()) {
+				return "";
+			}
+			final ArenaRoom arenaRoom = arenaData.getArenaRoom();
+			if (arenaRoom == null) {
+				return "";
+			}
+			return arenaRoom.getPlayerOption4() == null ? "" : arenaRoom.getPlayerOption4();
+		}),
 		;
 		
 		/**
