@@ -134,7 +134,7 @@ public class MusicSelector extends MainState {
 			decideMusicCallCount = 0;
 			playedsong = songData;
 
-			final ArenaRoom arenaRoom = ArenaUtils.updateLastUpdate(resource.getArenaData().getArenaRoom().getId(), ArenaConfig.INSTANCE.getPlayerID());
+			final ArenaRoom arenaRoom = decideMusic();
 
 			if (arenaRoom != null) {
 				if (arenaRoom.getError() == null) {
@@ -149,6 +149,42 @@ public class MusicSelector extends MainState {
 		} else {
 			changeState(MainStateType.DECIDE);
 		}
+	}
+
+	private ArenaRoom decideMusic() {
+		final ArenaRoom arenaRoom = resource.getArenaData().getArenaRoom();
+		boolean songAvailable1 = false, songAvailable2 = false, songAvailable3 = false, songAvailable4 = false;
+
+		if (arenaRoom.getSongHash1() != null) {
+			if (ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID1())) {
+				songAvailable1 = true;
+			} else {
+				songAvailable1 = songdb.getSongDatas(new String[]{arenaRoom.getSongHash1()}).length > 0;
+			}
+		}
+		if (arenaRoom.getSongHash2() != null) {
+			if (ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID2())) {
+				songAvailable2 = true;
+			} else {
+				songAvailable2 = songdb.getSongDatas(new String[]{arenaRoom.getSongHash2()}).length > 0;
+			}
+		}
+		if (arenaRoom.getSongHash3() != null) {
+			if (ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID3())) {
+				songAvailable3 = true;
+			} else {
+				songAvailable3 = songdb.getSongDatas(new String[]{arenaRoom.getSongHash3()}).length > 0;
+			}
+		}
+		if (arenaRoom.getSongHash4() != null) {
+			if (ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID4())) {
+				songAvailable4 = true;
+			} else {
+				songAvailable4 = songdb.getSongDatas(new String[]{arenaRoom.getSongHash4()}).length > 0;
+			}
+		}
+
+		return ArenaUtils.decideMusic(arenaRoom.getId(), ArenaConfig.INSTANCE.getPlayerID(), !decidedMusic || playedsong == null ? null : playedsong.getSha256(), songAvailable1, songAvailable2, songAvailable3, songAvailable4);
 	}
 
 	private SongData getNextSongData() {
@@ -374,37 +410,8 @@ public class MusicSelector extends MainState {
 				final long nowTimeMillis = System.currentTimeMillis();
 
 				if (prevSelectMusicTimeMillis + Duration.ofSeconds(2).toMillis() < nowTimeMillis) {
-					ArenaRoom arenaRoom = resource.getArenaData().getArenaRoom();
-					boolean songAvailable1 = false, songAvailable2 = false, songAvailable3 = false, songAvailable4 = false;
-					if (arenaRoom.getSongHash1() != null) {
-						if (ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID1())) {
-							songAvailable1 = true;
-						} else {
-							songAvailable1 = songdb.getSongDatas(new String[]{arenaRoom.getSongHash1()}).length > 0;
-						}
-					}
-					if (arenaRoom.getSongHash2() != null) {
-						if (ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID2())) {
-							songAvailable2 = true;
-						} else {
-							songAvailable2 = songdb.getSongDatas(new String[]{arenaRoom.getSongHash2()}).length > 0;
-						}
-					}
-					if (arenaRoom.getSongHash3() != null) {
-						if (ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID3())) {
-							songAvailable3 = true;
-						} else {
-							songAvailable3 = songdb.getSongDatas(new String[]{arenaRoom.getSongHash3()}).length > 0;
-						}
-					}
-					if (arenaRoom.getSongHash4() != null) {
-						if (ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID4())) {
-							songAvailable4 = true;
-						} else {
-							songAvailable4 = songdb.getSongDatas(new String[]{arenaRoom.getSongHash4()}).length > 0;
-						}
-					}
-					arenaRoom = ArenaUtils.decideMusic(arenaRoom.getId(), ArenaConfig.INSTANCE.getPlayerID(), !decidedMusic || playedsong == null ? null : playedsong.getSha256(), songAvailable1, songAvailable2, songAvailable3, songAvailable4);
+					final ArenaRoom arenaRoom = decideMusic();
+
 					if (arenaRoom != null) {
 						if (arenaRoom.getError() == null) {
 							if (decidedMusic) {
@@ -431,6 +438,8 @@ public class MusicSelector extends MainState {
 									ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID4()) && arenaRoom.isSong4Available() == 0) {
 								if (decideMusicCallCount >= 3) {
 									main.getMessageRenderer().addMessage("Selected song is NOT available", 1900, Color.RED, 0);
+									decidedMusic = false;
+									decideMusicCallCount = 0;
 									playedsong = null;
 								}
 							} else if (decidedMusic && ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID1()) && arenaRoom.isSong1Available() > 0 ||
