@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import bms.model.Mode;
 
 public class ArenaUtils {
-    private static final int VERSION = 2;
+    private static final int VERSION = 3;
     private static final ExecutorService THREAD_POOL = Executors.newSingleThreadExecutor();
 
     public static void close() {

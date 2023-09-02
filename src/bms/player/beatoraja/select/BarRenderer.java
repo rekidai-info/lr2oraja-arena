@@ -1127,16 +1127,20 @@ public class BarRenderer {
 					final PlayerConfig config = select.main.getPlayerConfig();
 
 					if (config.getLnmode() == 0) {
-						if (config.isBpmguide()) {
-							select.main.getMessageRenderer().addMessage("Please unset bpm guide", 3000, Color.RED, 0);
-						} else {
-							if (config.isCustomJudge() &&
-									(config.getKeyJudgeWindowRatePerfectGreat() > 100 || config.getKeyJudgeWindowRateGreat() > 100 || config.getKeyJudgeWindowRateGood() > 100 ||
-											config.getScratchJudgeWindowRatePerfectGreat() > 100 || config.getScratchJudgeWindowRateGreat() > 100 || config.getScratchJudgeWindowRateGood() > 100)) {
-								select.main.getMessageRenderer().addMessage("Please unset EXPAND JUDGE", 3000, Color.RED, 0);
+						if (config.getScrollMode() == 0) {
+							if (config.isBpmguide()) {
+								select.main.getMessageRenderer().addMessage("Please unset bpm guide", 3000, Color.RED, 0);
 							} else {
-								select.main.changeState(MainState.MainStateType.ARENAMATCHING);
+								if (config.isCustomJudge() &&
+										(config.getKeyJudgeWindowRatePerfectGreat() > 100 || config.getKeyJudgeWindowRateGreat() > 100 || config.getKeyJudgeWindowRateGood() > 100 ||
+												config.getScratchJudgeWindowRatePerfectGreat() > 100 || config.getScratchJudgeWindowRateGreat() > 100 || config.getScratchJudgeWindowRateGood() > 100)) {
+									select.main.getMessageRenderer().addMessage("Please unset EXPAND JUDGE", 3000, Color.RED, 0);
+								} else {
+									select.main.changeState(MainState.MainStateType.ARENAMATCHING);
+								}
 							}
+						} else {
+							select.main.getMessageRenderer().addMessage("Please unset scroll speed", 3000, Color.RED, 0);
 						}
 					} else {
 						select.main.getMessageRenderer().addMessage("Please change to LN mode", 3000, Color.RED, 0);

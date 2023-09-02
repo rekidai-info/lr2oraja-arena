@@ -421,7 +421,7 @@ public class MusicSelector extends MainState {
 								main.getMessageRenderer().addMessage("Your opponent has disconnected. Arena mode has been closed.", 1900, Color.RED, 0);
 								backToNonArenaMode();
 							} else if (decidedMusic && arenaRoom.isSong1Available() > 0 && arenaRoom.isSong2Available() > 0 && arenaRoom.isSong3Available() > 0 && arenaRoom.isSong4Available() > 0) {
-								if (decideMusicCallCount >= 3) {
+								if (decideMusicCallCount >= 4) {
 									main.getMessageRenderer().addMessage("All players have completed their song selection", 1900, Color.GOLD, 0);
 									resource.getArenaData().setPlayerNames(new ArrayList<String>(Arrays.asList(new String[]{arenaRoom.getPlayerName1(), arenaRoom.getPlayerName2(), arenaRoom.getPlayerName3(), arenaRoom.getPlayerName4()})));
 									resource.getArenaData().setSongHashes(new ArrayList<String>(Arrays.asList(new String[]{arenaRoom.getSongHash1(), arenaRoom.getSongHash2(), arenaRoom.getSongHash3(), arenaRoom.getSongHash4()})));
@@ -436,7 +436,7 @@ public class MusicSelector extends MainState {
 									ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID2()) && arenaRoom.isSong2Available() == 0 ||
 									ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID3()) && arenaRoom.isSong3Available() == 0 ||
 									ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID4()) && arenaRoom.isSong4Available() == 0) {
-								if (decideMusicCallCount >= 3) {
+								if (decideMusicCallCount >= 4) {
 									main.getMessageRenderer().addMessage("Selected song is NOT available", 1900, Color.RED, 0);
 									decidedMusic = false;
 									decideMusicCallCount = 0;
@@ -446,7 +446,7 @@ public class MusicSelector extends MainState {
 									ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID2()) && arenaRoom.isSong2Available() > 0 ||
 									ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID3()) && arenaRoom.isSong3Available() > 0 ||
 									ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID4()) && arenaRoom.isSong4Available() > 0) {
-								if (decideMusicCallCount >= 3) {
+								if (decideMusicCallCount >= 4) {
 									main.getMessageRenderer().addMessage("Selected song is available. Please wait until another player has selected a song.", 1900, Color.GOLD, 0);
 								}
 							}
@@ -465,6 +465,7 @@ public class MusicSelector extends MainState {
 
 				if (createdTimeMillis + Duration.ofSeconds(15).toMillis() < nowTimeMillis) {
 					config.setLnmode(0);
+					config.setScrollMode(0);
 					config.setBpmguide(false);
 					if (config.isCustomJudge() &&
 							(config.getKeyJudgeWindowRatePerfectGreat() > 100 || config.getKeyJudgeWindowRateGreat() > 100 || config.getKeyJudgeWindowRateGood() > 100 ||
