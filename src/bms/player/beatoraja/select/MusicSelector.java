@@ -6,6 +6,7 @@ import java.nio.file.*;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -254,10 +255,37 @@ public class MusicSelector extends MainState {
 		}
 	}
 	
-	private void noticeNextSong() {
+	private void notifyNextSong() {
 		main.getMessageRenderer().addMessage("by " + resource.getArenaData().getNextPlayer(), 14000, Color.GOLD, 0);
 		main.getMessageRenderer().addMessage("Next: " + playedsong.getDisplayString(), 14000, Color.GOLD, 0);
 		main.getMessageRenderer().addMessage("Change play options within 15 seconds", 14000, Color.GOLD, 0);
+	}
+	
+	private void notifyNewOpponent(final NewOpponent newOpponent) {
+		if (newOpponent == null) {
+			return;
+		}
+
+		if (!ArenaConfig.INSTANCE.getPlayerID().equals(newOpponent.getPlayerID())) {
+			if (config.getMode() != null && config.getMode().name().equals(newOpponent.getPlayMode())) {
+				if (Math.abs(ArenaConfig.INSTANCE.getArenaClassNumber() - newOpponent.getArenaClassNumber()) <= 5) {
+					main.getMessageRenderer().addMessage(String.format("%s(%s %s) is now arena matching.", newOpponent.getPlayerName(), newOpponent.getPlayerArenaClass(), newOpponent.getPlayerSkillClass()), 3000, Color.GOLD, 0);
+				}
+			}
+		}
+	}
+
+	private void notifyNewOpponents(final List<NewOpponent> newOpponents) {
+		if (newOpponents == null || newOpponents.isEmpty()) {
+			return;
+		}
+		
+		for (final NewOpponent newOpponent : newOpponents) {
+			try {
+				notifyNewOpponent(newOpponent);
+			} catch (final Exception ignore) {
+			}
+		}
 	}
 
 	private void backToNonArenaMode() {
@@ -391,17 +419,17 @@ public class MusicSelector extends MainState {
 
 			arenaData.setOrderOfSongs(arenaData.getOrderOfSongs() + 1);
 			if (arenaData.getOrderOfSongs() > 0) {
-				final ArenaRoom arenaRoom = arenaData.getArenaRoom();
-
 				selectState = SelectState.SELECTED;
 				playedsong = getNextSongData();
 
-				noticeNextSong();
+				notifyNextSong();
 			}
 		} else {
 			MQUtils.close();
 			MQUtils.connectSubSocket();
 			MQUtils.subscribe("newopponent");
+
+			notifyNewOpponents(ArenaUtils.waitingPlayers());
 		}
 	}
 
@@ -435,7 +463,7 @@ public class MusicSelector extends MainState {
 									createdTimeMillis = System.currentTimeMillis();
 									selectState = SelectState.SELECTED;
 
-									noticeNextSong();
+									notifyNextSong();
 								}
 							} else if (decidedMusic && ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID1()) && arenaRoom.isSong1Available() == 0 ||
 									ArenaConfig.INSTANCE.getPlayerID().equals(arenaRoom.getPlayerID2()) && arenaRoom.isSong2Available() == 0 ||
@@ -489,16 +517,7 @@ public class MusicSelector extends MainState {
 				while (received != null) {
 					final NewOpponent newOpponent = NewOpponent.fromJson(received);
 
-					if (newOpponent != null) {
-						if (!ArenaConfig.INSTANCE.getPlayerID().equals(newOpponent.getPlayerID())) {
-							if (config.getMode() != null && config.getMode().name().equals(newOpponent.getPlayMode())) {
-								if (Math.abs(ArenaConfig.INSTANCE.getArenaClassNumber() - newOpponent.getArenaClassNumber()) <= 5) {
-									main.getMessageRenderer().addMessage(String.format("%s(%s %s) is now arena matching.", newOpponent.getPlayerName(), newOpponent.getPlayerArenaClass(), newOpponent.getPlayerSkillClass()), 3000, Color.GOLD, 0);
-								}
-							}
-						}
-					}
-
+					notifyNewOpponent(newOpponent);
 					received = MQUtils.subRecvStr(ZMQ.DONTWAIT);
 				}
 			} catch (final Exception e) {

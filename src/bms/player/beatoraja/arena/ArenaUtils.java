@@ -18,6 +18,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import bms.model.Mode;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ArenaUtils {
     private static final int VERSION = 3;
@@ -29,6 +31,15 @@ public class ArenaUtils {
     public static void shutdown() {
         THREAD_POOL.shutdown();
         close();
+    }
+
+    private static synchronized HttpResponse<String> get(final String path)
+            throws IOException, InterruptedException {
+        final HttpClient client = HttpClient.newBuilder().build();
+        final HttpRequest request = HttpRequest.newBuilder(URI.create(ArenaConfig.INSTANCE.getHttpServerUrl() + path))
+                .timeout(Duration.ofSeconds(5)).GET().build();
+
+        return client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
     private static synchronized HttpResponse<String> post(final Map<String, String> params, final String path)
@@ -199,6 +210,27 @@ public class ArenaUtils {
         return null;
     }
 
+    public static List<NewOpponent> waitingPlayers() {
+        try {
+            final HttpResponse<String> response = get("/arena/waiting_players");
+
+            if (response == null) {
+                Logger.getGlobal().log(Level.WARNING, "Response is null");
+                return null;
+            }
+
+            if (response.statusCode() == 200) {
+                return new ObjectMapper().readValue(response.body(), new TypeReference<List<NewOpponent>>() {});
+            } else {
+                Logger.getGlobal().log(Level.WARNING, "Response is not ok" + response);
+            }
+        } catch (final Exception e) {
+            Logger.getGlobal().log(Level.WARNING, e.getLocalizedMessage(), e);
+        }
+
+        return null;
+    }
+
     public static Future<ArenaRoom> joinArenaAsync(final Mode playMode, final String playerID, final String playerName, final String arenaClass, final int arenaClassNumber, final String skillClass, final boolean playerAllowSkip) {
         return THREAD_POOL.submit(() -> joinArena(playMode, playerID, playerName, arenaClass, arenaClassNumber, skillClass, playerAllowSkip));
     }
@@ -221,5 +253,9 @@ public class ArenaUtils {
 
     public static Future<ArenaRoom> updateLastUpdateAsync(final String roomID, final String playerID) {
         return THREAD_POOL.submit(() -> updateLastUpdate(roomID, playerID));
+    }
+
+    public static Future<List<NewOpponent>> waitingPlayersAsync() {
+        return THREAD_POOL.submit(() -> waitingPlayers());
     }
 }
