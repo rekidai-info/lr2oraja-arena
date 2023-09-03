@@ -152,7 +152,7 @@ public class BMSPlayer extends MainState {
 				try {
 					String received = MQUtils.subRecvStr(ZMQ.DONTWAIT);
 
-					while (received != null) {
+					while (received != null && received.contains("SendScore")) {
 						final SendScore sendScore = SendScore.fromJson(received);
 
 						if (sendScore != null) {

@@ -9,10 +9,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import bms.player.beatoraja.arena.ArenaConfig;
-import bms.player.beatoraja.arena.ArenaRoom;
-import bms.player.beatoraja.arena.ArenaUtils;
-import bms.player.beatoraja.arena.MQUtils;
+import bms.player.beatoraja.arena.*;
 import bms.player.beatoraja.pattern.Random;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
@@ -30,6 +27,7 @@ import bms.player.beatoraja.select.bar.*;
 import bms.player.beatoraja.skin.SkinType;
 import bms.player.beatoraja.song.SongData;
 import bms.player.beatoraja.song.SongDatabaseAccessor;
+import org.zeromq.ZMQ;
 
 /**
  * 選曲部分。 楽曲一覧とカーソルが指す楽曲のステータスを表示し、選択した楽曲を 曲決定部分に渡す。
@@ -272,6 +270,9 @@ public class MusicSelector extends MainState {
 		MQUtils.close();
 		resource.clearArenaData();
 
+		MQUtils.connectSubSocket();
+		MQUtils.subscribe("newopponent");
+
 		changeState(MainStateType.MUSICSELECT);
 	}
 
@@ -397,6 +398,10 @@ public class MusicSelector extends MainState {
 
 				noticeNextSong();
 			}
+		} else {
+			MQUtils.close();
+			MQUtils.connectSubSocket();
+			MQUtils.subscribe("newopponent");
 		}
 	}
 
@@ -476,6 +481,28 @@ public class MusicSelector extends MainState {
 				}
 			} else {
 				throw new RuntimeException("Invalid select state(" + selectState + ")");
+			}
+		} else {
+			try {
+				String received = MQUtils.subRecvStr(ZMQ.DONTWAIT);
+
+				while (received != null) {
+					final NewOpponent newOpponent = NewOpponent.fromJson(received);
+
+					if (newOpponent != null) {
+						if (!ArenaConfig.INSTANCE.getPlayerID().equals(newOpponent.getPlayerID())) {
+							if (config.getMode() != null && config.getMode().name().equals(newOpponent.getPlayMode())) {
+								if (Math.abs(ArenaConfig.INSTANCE.getArenaClassNumber() - newOpponent.getArenaClassNumber()) <= 5) {
+									main.getMessageRenderer().addMessage(String.format("%s(%s %s) is now arena matching.", newOpponent.getPlayerName(), newOpponent.getPlayerArenaClass(), newOpponent.getPlayerSkillClass()), 3000, Color.GOLD, 0);
+								}
+							}
+						}
+					}
+
+					received = MQUtils.subRecvStr(ZMQ.DONTWAIT);
+				}
+			} catch (final Exception e) {
+				Logger.getGlobal().log(Level.WARNING, e.getLocalizedMessage(), e);
 			}
 		}
 

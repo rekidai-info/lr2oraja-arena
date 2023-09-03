@@ -27,7 +27,7 @@ public class SendScore {
     public static SendScore fromJson(final String json) {
         try {
             return new ObjectMapper().readValue(json, new TypeReference<SendScore>() {});
-        } catch (Exception e) {
+        } catch (final Exception e) {
             return null;
         }
     }
