@@ -152,21 +152,26 @@ public class BMSPlayer extends MainState {
 				try {
 					String received = MQUtils.subRecvStr(ZMQ.DONTWAIT);
 
-					while (received != null && received.contains("SendScore")) {
-						final SendScore sendScore = SendScore.fromJson(received);
+					while (received != null) {
+						try {
+							if (received.contains("SendScore")) {
+								final SendScore sendScore = SendScore.fromJson(received);
 
-						if (sendScore != null) {
-							final ArenaRoom arenaRoom = resource.getArenaData().getArenaRoom();
+								if (sendScore != null) {
+									final ArenaRoom arenaRoom = resource.getArenaData().getArenaRoom();
 
-							if (arenaRoom.getPlayerID1() != null && arenaRoom.getPlayerID1().equals(sendScore.getPlayerID())) {
-								player1EXScore = sendScore.getExScore();
-							} else if (arenaRoom.getPlayerID2() != null && arenaRoom.getPlayerID2().equals(sendScore.getPlayerID())) {
-								player2EXScore = sendScore.getExScore();
-							} else if (arenaRoom.getPlayerID3() != null && arenaRoom.getPlayerID3().equals(sendScore.getPlayerID())) {
-								player3EXScore = sendScore.getExScore();
-							} else if (arenaRoom.getPlayerID4() != null && arenaRoom.getPlayerID4().equals(sendScore.getPlayerID())) {
-								player4EXScore = sendScore.getExScore();
+									if (arenaRoom.getPlayerID1() != null && arenaRoom.getPlayerID1().equals(sendScore.getPlayerID())) {
+										player1EXScore = sendScore.getExScore();
+									} else if (arenaRoom.getPlayerID2() != null && arenaRoom.getPlayerID2().equals(sendScore.getPlayerID())) {
+										player2EXScore = sendScore.getExScore();
+									} else if (arenaRoom.getPlayerID3() != null && arenaRoom.getPlayerID3().equals(sendScore.getPlayerID())) {
+										player3EXScore = sendScore.getExScore();
+									} else if (arenaRoom.getPlayerID4() != null && arenaRoom.getPlayerID4().equals(sendScore.getPlayerID())) {
+										player4EXScore = sendScore.getExScore();
+									}
+								}
 							}
+						} catch (final Exception ignore) {
 						}
 
 						received = MQUtils.subRecvStr(ZMQ.DONTWAIT);
