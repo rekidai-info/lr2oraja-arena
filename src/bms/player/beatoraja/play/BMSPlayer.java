@@ -493,6 +493,15 @@ public class BMSPlayer extends MainState {
 				playinfo.randomoptionseed = pm.getSeed();
 			}
 			mods.add(pm);
+			if (resource.getArenaData().isArena()) {
+				final Random random = Random.getRandom(playinfo.randomoption);
+
+				if (random == Random.RANDOM || random == Random.R_RANDOM || random == Random.S_RANDOM || random == Random.H_RANDOM || random == Random.RANDOM_EX || random == Random.S_RANDOM_EX) {
+					if (ArenaConfig.INSTANCE.getPlaySide() == ArenaConfig.PlaySide.SIDE_2) {
+						mods.add(new LaneShuffleModifier(Random.MIRROR));
+					}
+				}
+			}
 			Logger.getGlobal().info("譜面オプション(1P) :  " + playinfo.randomoption + ", Seed : " + playinfo.randomoptionseed);
 
 			if (config.getSevenToNinePattern() >= 1 && model.getMode() == Mode.BEAT_7K) {

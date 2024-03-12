@@ -14,9 +14,12 @@ import java.util.*;
 public class ArenaConfig {
     public static final ArenaConfig INSTANCE = new ArenaConfig();
 
+    public enum PlaySide { SIDE_1, SIDE_2 };
+
     private final String httpServerUrl;
     private final String mqServerUrl;
     private final String playerName;
+    private final PlaySide playSide;
     private final String playerID;
     private final String arenaClass;
     private String skillClass;
@@ -133,15 +136,22 @@ public class ArenaConfig {
         if (httpServerUrl == null || httpServerUrl.isBlank()) {
             throw new RuntimeException("Set HTTP_SERVER_URL");
         }
+
         mqServerUrl = String.class.cast(properties.get("MQ_SERVER_URL"));
         if (mqServerUrl == null || mqServerUrl.isBlank()) {
             throw new RuntimeException("Set MQ_SERVER_URL");
         }
+
         playerName = String.class.cast(properties.get("PLAYER_NAME"));
         if (playerName == null || playerName.isBlank()) {
             throw new RuntimeException("Set PLAYER_NAME");
         }
+
+        final String playSide = String.class.cast(properties.get("PLAY_SIDE"));
+        this.playSide = "2P".equals(playSide) || "2p".equals(playSide) ? PlaySide.SIDE_2 : PlaySide.SIDE_1;
+
         playerID = UUID.randomUUID().toString().replaceAll("-", "");
+
         arenaClass = String.class.cast(properties.get("IIDX_ARENA_CLASS"));
         if (arenaClass == null || arenaClass.isBlank()) {
             throw new RuntimeException("Set IIDX_ARENA_CLASS");
@@ -245,6 +255,10 @@ public class ArenaConfig {
         return playerName;
     }
 
+    public PlaySide getPlaySide() {
+        return playSide == null ? PlaySide.SIDE_1 : playSide;
+    }
+
     public String getPlayerID() {
         return playerID;
     }
@@ -265,6 +279,7 @@ public class ArenaConfig {
                 "httpServerUrl='" + httpServerUrl + '\'' +
                 ", mqServerUrl='" + mqServerUrl + '\'' +
                 ", playerName='" + playerName + '\'' +
+                ", playSide='" + playSide + '\'' +
                 ", playerID='" + playerID + '\'' +
                 ", arenaClass='" + arenaClass + '\'' +
                 ", skillClass='" + skillClass + '\'' +
