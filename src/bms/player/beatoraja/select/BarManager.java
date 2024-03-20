@@ -500,7 +500,7 @@ public class BarManager {
 			} else {
 				final int count = select.main.getSongDatabase().countSongs();
 
-				if (count <= 1) {
+				if (count <= 1000) {
 					select.main.getMessageRenderer().addMessage("Too few BMS songs registered(" + count + "), must be greater than 1000", 3000, Color.RED, 0);
 				} else {
 					final PlayerConfig config = select.main.getPlayerConfig();
