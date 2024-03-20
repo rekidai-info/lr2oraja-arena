@@ -1,17 +1,14 @@
 package bms.player.beatoraja;
 
-import java.io.*;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 import bms.player.beatoraja.arena.*;
 import bms.player.beatoraja.arena.font.FontUtils;
-import bms.player.beatoraja.config.Discord;
+
 import org.lwjgl.input.Mouse;
 
 import com.badlogic.gdx.*;
@@ -51,9 +48,9 @@ import bms.player.beatoraja.stream.StreamController;
  *
  * @author exch
  */
-public class MainController extends ApplicationAdapter {
+public class MainController {
 
-	private static final String VERSION = "beatoraja 0.8.6";
+	private static final String VERSION = "beatoraja 0.8.7";
 
 	public static final boolean debug = false;
 
@@ -113,8 +110,6 @@ public class MainController extends ApplicationAdapter {
 	 */
 	private PlayDataAccessor playdata;
 
-	static final Path configpath = Paths.get("config.json");
-
 	private SystemSoundManager sound;
 
 	private Thread screenshot;
@@ -127,11 +122,10 @@ public class MainController extends ApplicationAdapter {
 	protected TextureRegion black;
 	protected TextureRegion white;
 
-	public static Discord discord;
-	
 	private ArenaMatching arenaMatching;
 	private ArenaResult arenaResult;
 
+	private final Array<MainStateListener> stateListener = new Array<MainStateListener>();
 
 	public MainController(Path f, Config config, PlayerConfig player, BMSPlayerMode auto, boolean songUpdated) {
 		this.auto = auto;
@@ -166,7 +160,7 @@ public class MainController extends ApplicationAdapter {
 			if(ir != null) {
 				if(irconfig.getUserid().length() == 0 || irconfig.getPassword().length() == 0) {
 				} else {
-					IRResponse<IRPlayerData> response = ir.login(irconfig.getUserid(), irconfig.getPassword());
+					IRResponse<IRPlayerData> response = ir.login(new IRAccount(irconfig.getUserid(), irconfig.getPassword(), ""));
 					if(response.isSucceeded()) {
 						irarray.add(new IRStatus(irconfig, ir, response.getData()));
 					} else {
@@ -192,7 +186,11 @@ public class MainController extends ApplicationAdapter {
 		}
 
 		timer = new TimerManager();
-		sound = new SystemSoundManager(config);
+		sound = new SystemSoundManager(this);
+		
+		if(config.isUseDiscordRPC()) {
+			stateListener.add(new DiscordListener());
+		}
 	}
 
 	public SkinOffset getOffset(int index) {
@@ -239,8 +237,6 @@ public class MainController extends ApplicationAdapter {
 		MainState newState = null;
 		switch (state) {
 		case MUSICSELECT:
-			discord = new Discord("In Music Select Menu", "");
-			discord.update();
 			if (this.bmsfile != null) {
 				exit();
 			} else {
@@ -258,13 +254,9 @@ public class MainController extends ApplicationAdapter {
 			newState = bmsplayer;
 			break;
 		case RESULT:
-			discord = new Discord("Result Screen", "");
-			discord.update();
 			newState = result;
 			break;
 		case COURSERESULT:
-			discord = new Discord("Result Screen", "");
-			discord.update();
 			newState = gresult;
 			break;
 		case CONFIG:
@@ -283,18 +275,17 @@ public class MainController extends ApplicationAdapter {
 
 		if (newState != null && current != newState) {
 			if(current != null) {
+				current.shutdown();
 				current.setSkin(null);
 			}
 			newState.create();
 			if(newState.getSkin() != null) {
 				newState.getSkin().prepare(newState);
 			}
-			if (current != null) {
-				current.shutdown();
-			}
 			current = newState;
 			timer.setMainState(newState);
 			current.prepare();
+			updateMainStateListener(0);
 		}
 		if (current.getStage() != null) {
 			Gdx.input.setInputProcessor(new InputMultiplexer(current.getStage(), input.getKeyBoardInputProcesseor()));
@@ -312,14 +303,13 @@ public class MainController extends ApplicationAdapter {
 
 	}
 
-	@Override
 	public void create() {
 		final long t = System.currentTimeMillis();
 		sprite = new SpriteBatch();
 		SkinLoader.initPixmapResourcePool(config.getSkinPixmapGen());
 
 		try {
-			generator = new FreeTypeFontGenerator(Gdx.files.internal("skin/default/VL-Gothic-Regular.ttf"));
+			FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal(config.getSystemfontpath()));
 			FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 			parameter.size = 24;
 			parameter.characters = FontUtils.CHARACTERS;
@@ -327,10 +317,12 @@ public class MainController extends ApplicationAdapter {
 
 			parameter.size = 36;
 			systemfont2 = generator.generateFont(parameter);
+
+			generator.dispose();
 		} catch (GdxRuntimeException e) {
-			Logger.getGlobal().severe("System Font１読み込み失敗");
+			Logger.getGlobal().severe("System Font読み込み失敗");
 		}
-		messageRenderer = new MessageRenderer();
+		messageRenderer = new MessageRenderer(config.getMessagefontpath());
 
 		input = new BMSPlayerInputProcessor(config, player);
 		switch(config.getAudioConfig().getDriver()) {
@@ -386,8 +378,8 @@ public class MainController extends ApplicationAdapter {
 		});
 		polling.start();
 
-		Array<String> targetlist = new Array(player.getTargetlist());
-		for(int i = 0;i < rivals.getRivals().length;i++) {
+		Array<String> targetlist = new Array<String>(player.getTargetlist());
+		for(int i = 0;i < rivals.getRivalCount();i++) {
 			targetlist.add("RIVAL_" + (i + 1));
 		}
 		TargetProperty.setTargets(targetlist.toArray(String.class), this);
@@ -414,7 +406,6 @@ public class MainController extends ApplicationAdapter {
 
 	private final StringBuilder message = new StringBuilder();
 
-	@Override
 	public void render() {
 //		input.poll();
 		timer.update();
@@ -626,13 +617,12 @@ public class MainController extends ApplicationAdapter {
             }
 
 			if (updateSong != null && !updateSong.isAlive()) {
-				selector.getBarRender().updateBar();
+				selector.getBarManager().updateBar();
 				updateSong = null;
 			}
         }
 	}
 
-	@Override
 	public void dispose() {
 		saveConfig();
 
@@ -677,17 +667,14 @@ public class MainController extends ApplicationAdapter {
 		Logger.getGlobal().info("全リソース破棄完了");
 	}
 
-	@Override
 	public void pause() {
 		current.pause();
 	}
 
-	@Override
 	public void resize(int width, int height) {
 		current.resize(width, height);
 	}
 
-	@Override
 	public void resume() {
 		current.resume();
 	}
@@ -720,6 +707,12 @@ public class MainController extends ApplicationAdapter {
 
 	public MessageRenderer getMessageRenderer() {
 		return messageRenderer;
+	}
+	
+	public void updateMainStateListener(int status) {
+		for(MainStateListener listener : stateListener) {
+			listener.update(current, status);
+		}
 	}
 
 	public long getPlayTime() {
@@ -863,72 +856,6 @@ public class MainController extends ApplicationAdapter {
 				accessor.setTableData(td);
 			}
 			message.stop();
-		}
-	}
-
-	/**
-	 * BGM、効果音セット管理用クラス
-	 *
-	 * @author exch
-	 */
-	public static class SystemSoundManager {
-		/**
-		 * 検出されたBGMセットのディレクトリパス
-		 */
-		private Array<Path> bgms = new Array<Path>();
-		/**
-		 * 現在のBGMセットのディレクトリパス
-		 */
-		private Path currentBGMPath;
-		/**
-		 * 検出された効果音セットのディレクトリパス
-		 */
-		private Array<Path> sounds = new Array<Path>();
-		/**
-		 * 現在の効果音セットのディレクトリパス
-		 */
-		private Path currentSoundPath;
-
-		public SystemSoundManager(Config config) {
-			if(config.getBgmpath() != null && config.getBgmpath().length() > 0) {
-				scan(Paths.get(config.getBgmpath()).toAbsolutePath(), bgms, "select.wav");
-			}
-			if(config.getSoundpath() != null && config.getSoundpath().length() > 0) {
-				scan(Paths.get(config.getSoundpath()).toAbsolutePath(), sounds, "clear.wav");
-			}
-			Logger.getGlobal().info("検出されたBGM Set : " + bgms.size + " Sound Set : " + sounds.size);
-		}
-
-		public void shuffle() {
-			if(bgms.size > 0) {
-				currentBGMPath = bgms.get((int) (Math.random() * bgms.size));
-			}
-			if(sounds.size > 0) {
-				currentSoundPath = sounds.get((int) (Math.random() * sounds.size));
-			}
-			Logger.getGlobal().info("BGM Set : " + currentBGMPath + " Sound Set : " + currentSoundPath);
-		}
-
-		public Path getBGMPath() {
-			return currentBGMPath;
-		}
-
-		public Path getSoundPath() {
-			return currentSoundPath;
-		}
-
-		private void scan(Path p, Array<Path> paths, String name) {
-			if (Files.isDirectory(p)) {
-				try (Stream<Path> sub = Files.list(p)) {
-					sub.forEach((t) -> {
-						scan(t, paths, name);
-					});
-					if (AudioDriver.getPaths(p.resolve(name).toString()).length > 0) {
-						paths.add(p);
-					}
-				} catch (IOException e) {
-				}
-			}
 		}
 	}
 

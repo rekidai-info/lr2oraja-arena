@@ -2,6 +2,7 @@ package bms.player.beatoraja.skin.property;
 
 import bms.player.beatoraja.*;
 import bms.player.beatoraja.arena.ArenaRoom;
+import bms.player.beatoraja.MainController.IRStatus;
 import bms.player.beatoraja.config.KeyConfiguration;
 import bms.player.beatoraja.config.SkinConfiguration;
 import bms.player.beatoraja.decide.MusicDecide;
@@ -60,7 +61,7 @@ public class StringPropertyFactory {
 				final PlayerInformation rival = ((MusicSelector) state).getRival();
 				return rival != null ? rival.getName() : "";
 			} else {
-				final ScoreData rival = state.resource.getRivalScoreData();
+				final ScoreData rival = state.resource.getTargetScoreData();
 				return rival != null ? rival.getPlayer() : "";
 			}
 		}),
@@ -69,8 +70,8 @@ public class StringPropertyFactory {
 			if (state instanceof MusicSelector) {
 				return TargetProperty.getTargetName(state.resource.getPlayerConfig().getTargetid());					
 			} else {
-				final ScoreData rival = state.resource.getRivalScoreData();
-				return rival != null ? rival.getPlayer() : "";
+				final ScoreData target = state.resource.getTargetScoreData();
+				return target != null ? target.getPlayer() : "";
 			}
 		}),
 		title(10, (state) -> {
@@ -177,12 +178,16 @@ public class StringPropertyFactory {
 		skinname(50, (state) -> {
 			if (state instanceof SkinConfiguration) {
 				return ((SkinConfiguration)state).getSelectedSkinHeader() != null ? ((SkinConfiguration)state).getSelectedSkinHeader().getName() : "";
+			} else if(state.getSkin() != null && state.getSkin().header != null) {
+				return state.getSkin().header.getName();
 			}
 			return "";
 		}),
 		skinauthor(51, (state) -> {
 			if (state instanceof SkinConfiguration) {
-				return ((SkinConfiguration)state).getSelectedSkinHeader() != null ? "" : "";
+				return ((SkinConfiguration)state).getSelectedSkinHeader() != null ? ((SkinConfiguration)state).getSelectedSkinHeader().getAuthor() : "";
+			} else if(state.getSkin() != null && state.getSkin().header != null) {
+				return state.getSkin().header.getAuthor();
 			}
 			return "";
 		}),
@@ -249,7 +254,7 @@ public class StringPropertyFactory {
 
 		directory(1000, (state) -> {
 			if (state instanceof MusicSelector) {
-				return ((MusicSelector) state).getBarRender().getDirectoryString();
+				return ((MusicSelector) state).getBarManager().getDirectoryString();
 			}
 			return "";
 		}),
@@ -264,7 +269,22 @@ public class StringPropertyFactory {
 			}
 			return "";
 		}),
-		arena_name_player1(1031, state -> {
+		irUserName(1021, (state) -> {
+			final IRStatus[] ir = state.main.getIRStatus();
+			if (ir.length > 0) {
+				return ir[0].player.name;
+			}
+			return "";
+		}),
+		songhashmd5(1030, (state) -> {
+			final SongData song = state.resource.getSongdata();
+			return song != null ? song.getMd5() : "";
+		}),
+		songhashsha256(1031, (state) -> {
+			final SongData song = state.resource.getSongdata();
+			return song != null ? song.getSha256() : "";
+		}),
+		arena_name_player1(1032, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";
@@ -275,7 +295,7 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerName1() == null ? "" : arenaRoom.getPlayerName1();
 		}),
-		arena_name_player2(1032, state -> {
+		arena_name_player2(1033, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";
@@ -286,7 +306,7 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerName2() == null ? "" : arenaRoom.getPlayerName2();
 		}),
-		arena_name_player3(1033, state -> {
+		arena_name_player3(1034, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";
@@ -297,7 +317,7 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerName3() == null ? "" : arenaRoom.getPlayerName3();
 		}),
-		arena_name_player4(1034, state -> {
+		arena_name_player4(1035, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";
@@ -308,7 +328,7 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerName4() == null ? "" : arenaRoom.getPlayerName4();
 		}),
-		arena_arena_class_player1(1035, state -> {
+		arena_arena_class_player1(1036, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";
@@ -319,7 +339,7 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerArenaClass1() == null ? "" : arenaRoom.getPlayerArenaClass1();
 		}),
-		arena_arena_class_player2(1036, state -> {
+		arena_arena_class_player2(1037, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";
@@ -330,7 +350,7 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerArenaClass2() == null ? "" : arenaRoom.getPlayerArenaClass2();
 		}),
-		arena_arena_class_player3(1037, state -> {
+		arena_arena_class_player3(1038, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";
@@ -341,7 +361,7 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerArenaClass3() == null ? "" : arenaRoom.getPlayerArenaClass3();
 		}),
-		arena_arena_class_player4(1038, state -> {
+		arena_arena_class_player4(1039, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";
@@ -352,7 +372,7 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerArenaClass4() == null ? "" : arenaRoom.getPlayerArenaClass4();
 		}),
-		arena_skill_class_player1(1039, state -> {
+		arena_skill_class_player1(1040, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";
@@ -363,7 +383,7 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerSkillClass1() == null ? "" : arenaRoom.getPlayerSkillClass1();
 		}),
-		arena_skill_class_player2(1040, state -> {
+		arena_skill_class_player2(1041, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";
@@ -374,7 +394,7 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerSkillClass2() == null ? "" : arenaRoom.getPlayerSkillClass2();
 		}),
-		arena_skill_class_player3(1041, state -> {
+		arena_skill_class_player3(1042, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";
@@ -385,7 +405,7 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerSkillClass3() == null ? "" : arenaRoom.getPlayerSkillClass3();
 		}),
-		arena_skill_class_player4(1042, state -> {
+		arena_skill_class_player4(1043, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";
@@ -396,7 +416,7 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerSkillClass4() == null ? "" : arenaRoom.getPlayerSkillClass4();
 		}),
-		arena_option_player1(1043, state -> {
+		arena_option_player1(1044, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";
@@ -407,7 +427,7 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerOption1() == null ? "" : arenaRoom.getPlayerOption1();
 		}),
-		arena_option_player2(1044, state -> {
+		arena_option_player2(1045, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";
@@ -418,7 +438,7 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerOption2() == null ? "" : arenaRoom.getPlayerOption2();
 		}),
-		arena_option_player3(1045, state -> {
+		arena_option_player3(1046, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";
@@ -429,7 +449,7 @@ public class StringPropertyFactory {
 			}
 			return arenaRoom.getPlayerOption3() == null ? "" : arenaRoom.getPlayerOption3();
 		}),
-		arena_option_player4(1046, state -> {
+		arena_option_player4(1047, state -> {
 			final PlayerResource.ArenaData arenaData = state.resource.getArenaData();
 			if (!arenaData.isArena()) {
 				return "";

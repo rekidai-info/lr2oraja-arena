@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 import bms.player.beatoraja.ir.IRConnectionManager;
 import bms.player.beatoraja.pattern.*;
 import bms.player.beatoraja.play.GrooveGauge;
-import bms.player.beatoraja.play.TargetProperty;
 import bms.player.beatoraja.select.BarSorter;
 import bms.player.beatoraja.skin.SkinType;
 
@@ -27,7 +26,13 @@ import com.badlogic.gdx.utils.SerializationException;
  */
 public class PlayerConfig {
 
+	/**
+	 * 旧コンフィグパス。そのうち削除
+	 */
 	static final Path configpath_old = Paths.get("config.json");
+	/**
+	 * コンフィグパス(UTF-8)
+	 */
 	static final Path configpath = Paths.get("config_player.json");	
 
 	private String id;
@@ -71,6 +76,9 @@ public class PlayerConfig {
 	public static final int JUDGETIMING_MAX = 500;
 	public static final int JUDGETIMING_MIN = -500;
 	
+	/**
+	 * ディスプレイ表示タイミング自動調整
+	 */
 	private boolean notesDisplayTimingAutoAdjust = false;
 
     /**
@@ -98,7 +106,7 @@ public class PlayerConfig {
     private int longnoteMode = 0;
     private double longnoteRate = 1.0;
 	/**
-	 * アシストオプション:判定拡大
+	 * アシストオプション:カスタムジャッジ
 	 */
 	private boolean customJudge = false;
 	private int keyJudgeWindowRatePerfectGreat = 400;
@@ -145,9 +153,6 @@ public class PlayerConfig {
 	public static final int GAUGEAUTOSHIFT_SELECT_TO_UNDER = 4;
 
 	private int autosavereplay[];
-
-	// TODO Configから移行(0.8.2)。ある程度バージョンが進んだら消す
-	private static Config config;
 
 	/**
 	 * 7to9 スクラッチ鍵盤位置関係 0:OFF 1:SC1KEY2~8 2:SC1KEY3~9 3:SC2KEY3~9 4:SC8KEY1~7 5:SC9KEY1~7 6:SC9KEY2~8
@@ -203,6 +208,11 @@ public class PlayerConfig {
 	 * 通過ノートを表示するかどうか
 	 */
 	private boolean showpastnote = false;
+	
+	/**
+	 * チャートプレビューを使用するかどうか
+	 */
+	private boolean chartPreview = true;
 	
 	/**
 	 * 選択中の選曲時ソート
@@ -662,6 +672,14 @@ public class PlayerConfig {
 		this.isRandomSelect = isRandomSelect;
 	}
 
+	public boolean isChartPreview() {
+		return chartPreview;
+	}
+
+	public void setChartPreview(boolean chartPreview) {
+		this.chartPreview = chartPreview;
+	}
+
 	public String getId() {
 		return id;
 	}
@@ -798,7 +816,7 @@ public class PlayerConfig {
 		mode24.validate(26);
 		mode24double.validate(52);
 		
-		sort = MathUtils.clamp(sort, 0 , BarSorter.values().length - 1);
+		sort = MathUtils.clamp(sort, 0 , BarSorter.defaultSorter.length - 1);
 
 		gauge = MathUtils.clamp(gauge, 0, 5);
 		random = MathUtils.clamp(random, 0, 9);
@@ -818,7 +836,7 @@ public class PlayerConfig {
 		hranThresholdBPM = MathUtils.clamp(hranThresholdBPM, 1, 1000);
 		
 		if(autosavereplay == null) {
-			autosavereplay = config.autosavereplay != null ? config.autosavereplay.clone() : new int[4];
+			autosavereplay = new int[4];
 		}
 		if(autosavereplay.length != 4) {
 			autosavereplay = Arrays.copyOf(autosavereplay, 4);
@@ -861,7 +879,6 @@ public class PlayerConfig {
 	}
 
 	public static void init(Config config) {
-		PlayerConfig.config = config;
 		// TODO プレイヤーアカウント検証
 		try {
 			if(!Files.exists(Paths.get(config.getPlayerpath()))) {
@@ -889,7 +906,6 @@ public class PlayerConfig {
 				config.setPlayername("player1");
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -943,6 +959,7 @@ public class PlayerConfig {
 				e.printStackTrace();
 			}			
 		} else if(Files.exists(path_old)) {
+			// 旧コンフィグ読み込み。そのうち削除
 			try (FileReader reader = new FileReader(path_old.toFile())) {
 				Json json = new Json();
 				json.setIgnoreUnknownFields(true);
@@ -1016,4 +1033,14 @@ public class PlayerConfig {
     public void setLongnoteRate(double longnoteRate) {
         this.longnoteRate = longnoteRate;
     }
+
+    private boolean eventMode = false;
+
+	public boolean isEventMode() {
+		return eventMode;
+	}
+
+	public void setEventMode(boolean eventMode) {
+		this.eventMode = eventMode;
+	}
 }

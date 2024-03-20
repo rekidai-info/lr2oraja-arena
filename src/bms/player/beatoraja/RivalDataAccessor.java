@@ -1,33 +1,61 @@
 package bms.player.beatoraja;
 
 import java.io.File;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import com.badlogic.gdx.utils.Array;
 
 import bms.player.beatoraja.ScoreDatabaseAccessor.ScoreDataCollector;
 import bms.player.beatoraja.external.ScoreDataImporter;
-import bms.player.beatoraja.ir.IRPlayerData;
-import bms.player.beatoraja.ir.IRResponse;
-import bms.player.beatoraja.ir.IRScoreData;
+import bms.player.beatoraja.ir.*;
 import bms.player.beatoraja.select.ScoreDataCache;
 import bms.player.beatoraja.song.SongData;
 
-public class RivalDataAccessor {
+/**
+ * ライバルデータ管理用
+ * 
+ * @author exch
+ */
+public final class RivalDataAccessor {
 
+	/**
+	 * ライバル情報
+	 */
 	private PlayerInformation[] rivals = new PlayerInformation[0];
+	/**
+	 * ライバルスコアデータキャッシュ
+	 */
 	private ScoreDataCache[] rivalcaches = new ScoreDataCache[0];
 
-	public PlayerInformation[] getRivals() {
-		return rivals;
+	/**
+	 * ライバル情報を取得する
+	 * 
+	 * @param index インデックス
+	 * @return ライバル情報
+	 */
+	public PlayerInformation getRivalInformation(int index) {
+		return index >= 0 && index < rivals.length ? rivals[index] : null;
 	}
 	
-	public ScoreDataCache[] getRivalScoreDataCaches() {
-		return rivalcaches;
+	/**
+	 * ライバルスコアデータキャッシュを取得する
+	 * 
+	 * @param index インデックス
+	 * @return ライバルスコアデータキャッシュ
+	 */
+	public ScoreDataCache getRivalScoreDataCache(int index) {
+		return index >= 0 && index < rivalcaches.length ? rivalcaches[index] : null;
+	}
+	
+	/**
+	 * ライバル数を取得する
+	 * 
+	 * @return ライバル数
+	 */
+	public int getRivalCount() {
+		return rivals.length;
 	}
 
 	public void update(MainController main) {
@@ -60,8 +88,8 @@ public class RivalDataAccessor {
 					}
 
 					// ライバルキャッシュ作成
-					Array<PlayerInformation> rivals = new Array();
-					Array<ScoreDataCache> rivalcaches = new Array();
+					Array<PlayerInformation> rivals = new Array<PlayerInformation>();
+					Array<ScoreDataCache> rivalcaches = new Array<ScoreDataCache>();
 					
 					if(main.getIRStatus()[0].config.isImportrival()) {
 						for(IRPlayerData irplayer : response.getData()) {
@@ -157,10 +185,8 @@ public class RivalDataAccessor {
 	}
 	
 	private ScoreData[] convert(IRScoreData[] irscores) {
-		ScoreData[] scores = new ScoreData[irscores.length];
-		for(int i = 0;i < scores.length;i++) {
+		return Stream.of(irscores).map(irscore -> {
 			final ScoreData score = new ScoreData();
-			final bms.player.beatoraja.ir.IRScoreData irscore = irscores[i];
 			score.setSha256(irscore.sha256);
 			score.setMode(irscore.lntype);
 			score.setPlayer(irscore.player);
@@ -182,14 +208,13 @@ public class RivalDataAccessor {
 			score.setNotes(irscore.notes);
 			score.setPassnotes(irscore.passnotes != 0 ? irscore.notes : irscore.passnotes);
 			score.setMinbp(irscore.minbp);
+			score.setAvgjudge(irscore.avgjudge);
 			score.setOption(irscore.option);
 			score.setSeed(irscore.seed);
 			score.setAssist(irscore.assist);
 			score.setGauge(irscore.gauge);
 			score.setDeviceType(irscore.deviceType);
-			
-			scores[i] = score;
-		}
-		return scores;
+			return score;
+		}).toArray(ScoreData[]::new);
 	}
 }

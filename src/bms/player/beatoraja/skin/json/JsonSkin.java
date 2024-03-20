@@ -8,6 +8,7 @@ public class JsonSkin {
 
 		public int type = -1;
 		public String name;
+		public String author;
 		public int w = 1280;
 		public int h = 720;
 		public int fadeout;
@@ -231,6 +232,7 @@ public class JsonSkin {
 		public int delay = 500;
 		public int orderReverse = 0;
 		public int noGap = 0;
+		public int noGapX = 0;
 	}
 
 	public static class BPMGraph {

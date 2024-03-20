@@ -1,17 +1,17 @@
 package bms.player.beatoraja.select;
 
 import bms.player.beatoraja.*;
+import bms.player.beatoraja.SystemSoundManager.SoundType;
 import bms.player.beatoraja.input.BMSPlayerInputProcessor;
 import bms.player.beatoraja.input.KeyCommand;
 import bms.player.beatoraja.input.KeyBoardInputProcesseor.ControlKeys;
-import bms.player.beatoraja.play.TargetProperty;
 import bms.player.beatoraja.select.MusicSelectKeyProperty.MusicSelectKey;
 import bms.player.beatoraja.select.bar.*;
 import bms.player.beatoraja.skin.property.EventFactory.EventType;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 
-import static bms.player.beatoraja.select.MusicSelector.*;
+import static bms.player.beatoraja.SystemSoundManager.SoundType.*;
 import static bms.player.beatoraja.skin.SkinProperty.*;
 
 import static bms.player.beatoraja.select.MusicSelectKeyProperty.MusicSelectKey.*;
@@ -65,7 +65,8 @@ public class MusicSelectInputProcessor {
         final PlayerResource resource = main.getPlayerResource();
         final PlayerConfig config = resource.getPlayerConfig();
         final BarRenderer bar = select.getBarRender();
-        final Bar current = bar.getSelected();
+        final BarManager barManager = select.getBarManager();
+        final Bar current = select.getBarManager().getSelected();
 
         if (input.isControlKeyPressed(ControlKeys.NUM0)) {
             // 検索用ポップアップ表示。これ必要？
@@ -73,8 +74,8 @@ public class MusicSelectInputProcessor {
                 @Override
                 public void input(String text) {
                     if (text.length() > 1) {
-                        bar.addSearch(new SearchWordBar(select, text));
-                        bar.updateBar(null);
+                    	barManager.addSearch(new SearchWordBar(select, text));
+                    	barManager.updateBar(null);
                     }
                 }
 
@@ -104,7 +105,7 @@ public class MusicSelectInputProcessor {
             isOptionKeyReleased = true;
             if(isOptionKeyPressed) {
                 isOptionKeyPressed = false;
-                select.play(SOUND_OPTIONCLOSE);
+                select.play(OPTION_CLOSE);
             }
         }
 
@@ -120,7 +121,7 @@ public class MusicSelectInputProcessor {
             if(isOptionKeyReleased) {
                 isOptionKeyPressed = true;
                 isOptionKeyReleased = false;
-                select.play(SOUND_OPTIONOPEN);
+                select.play(OPTION_OPEN);
             }
             if (property.isPressed(input, OPTION1_DOWN, true)) {
                 select.executeEvent(EventType.option1p, 1);
@@ -193,15 +194,14 @@ public class MusicSelectInputProcessor {
                 }
             }
 
-            String[] targets = TargetProperty.getTargets();
             while(mov > 0) {
             	select.executeEvent(EventType.target, -1);
-                select.play(SOUND_SCRATCH);
+                select.play(SCRATCH);
                 mov--;
             }
             while(mov < 0) {
             	select.executeEvent(EventType.target, 1);
-                select.play(SOUND_SCRATCH);
+                select.play(SCRATCH);
                 mov++;
             }
         } else if (input.isSelectPressed() && !input.startPressed()) {
@@ -211,35 +211,35 @@ public class MusicSelectInputProcessor {
             if(isOptionKeyReleased) {
                 isOptionKeyPressed = true;
                 isOptionKeyReleased = false;
-                select.play(SOUND_OPTIONOPEN);
+                select.play(OPTION_OPEN);
             }
             if (property.isPressed(input, JUDGEWINDOW_UP, true)) {
                 config.setCustomJudge(!config.isCustomJudge());
-                select.play(SOUND_OPTIONCHANGE);
+                select.play(OPTION_CHANGE);
             }
             if (property.isPressed(input, CONSTANT, true)) {
                 config.setScrollMode(config.getScrollMode() == 1 ? 0 : 1);
-                select.play(SOUND_OPTIONCHANGE);
+                select.play(OPTION_CHANGE);
             }
             if (property.isPressed(input, JUDGEAREA, true)) {
                 config.setShowjudgearea(!config.isShowjudgearea());
-                select.play(SOUND_OPTIONCHANGE);
+                select.play(OPTION_CHANGE);
             }
             if (property.isPressed(input, LEGACYNOTE, true)) {
                 config.setLongnoteMode(config.getLongnoteMode() == 1 ? 0 : 1);
-                select.play(SOUND_OPTIONCHANGE);
+                select.play(OPTION_CHANGE);
             }
             if (property.isPressed(input, MARKNOTE, true)) {
                 config.setMarkprocessednote(!config.isMarkprocessednote());
-                select.play(SOUND_OPTIONCHANGE);
+                select.play(OPTION_CHANGE);
             }
             if (property.isPressed(input, BPMGUIDE, true)) {
                 config.setBpmguide(!config.isBpmguide());
-                select.play(SOUND_OPTIONCHANGE);
+                select.play(OPTION_CHANGE);
             }
             if (property.isPressed(input, NOMINE, true)) {
                 config.setMineMode(config.getMineMode() == 1 ? 0 : 1);
-                select.play(SOUND_OPTIONCHANGE);
+                select.play(OPTION_CHANGE);
             }
         } else if (input.getControlKeyState(ControlKeys.NUM5) || (input.startPressed() && input.isSelectPressed())) {
             bar.resetInput();
@@ -248,7 +248,7 @@ public class MusicSelectInputProcessor {
             if(isOptionKeyReleased) {
                 isOptionKeyPressed = true;
                 isOptionKeyReleased = false;
-                select.play(SOUND_OPTIONOPEN);
+                select.play(OPTION_OPEN);
             }
             if (property.isPressed(input, BGA_DOWN, true)) {
             	select.executeEvent(EventType.bga);
@@ -298,32 +298,32 @@ public class MusicSelectInputProcessor {
                     // play
                     select.selectSong(BMSPlayerMode.PLAY);
                 } else if (property.isPressed(input, PRACTICE, true)) {
-                    if (select.resource.getArenaData().isArena()) {
+                	if (select.resource.getArenaData().isArena()) {
                         select.selectSong(BMSPlayerMode.PLAY);
                     } else {
                         // practice mode
-                        select.selectSong(BMSPlayerMode.PRACTICE);
+                        select.selectSong(config.isEventMode() ? BMSPlayerMode.PLAY : BMSPlayerMode.PRACTICE);
                     }
                 } else if (property.isPressed(input, AUTO, true)) {
-                    if (select.resource.getArenaData().isArena()) {
+                	if (select.resource.getArenaData().isArena()) {
                         select.selectSong(BMSPlayerMode.PLAY);
                     } else {
                         // auto play
-                        select.selectSong(BMSPlayerMode.AUTOPLAY);
+                        select.selectSong(config.isEventMode() ? BMSPlayerMode.PLAY : BMSPlayerMode.AUTOPLAY);
                     }
                 } else if (property.isPressed(input, MusicSelectKey.REPLAY, true)) {
-                    if (select.resource.getArenaData().isArena()) {
+                	if (select.resource.getArenaData().isArena()) {
                         select.selectSong(BMSPlayerMode.PLAY);
                     } else {
                         // replay
-                        select.selectSong((select.getSelectedReplay() >= 0) ? BMSPlayerMode.getReplayMode(select.getSelectedReplay()) : BMSPlayerMode.PLAY);
+                        select.selectSong(config.isEventMode() ? BMSPlayerMode.PLAY : ((select.getSelectedReplay() >= 0) ? BMSPlayerMode.getReplayMode(select.getSelectedReplay()) : BMSPlayerMode.PLAY));
                     }
                 }
             } else {
-                if (property.isPressed(input, FOLDER_OPEN, true) || input.isControlKeyPressed(ControlKeys.RIGHT) || input.isControlKeyPressed(ControlKeys.ENTER)) {
+                if (property.isPressed(input, MusicSelectKey.FOLDER_OPEN, true) || input.isControlKeyPressed(ControlKeys.RIGHT) || input.isControlKeyPressed(ControlKeys.ENTER)) {
                     // open folder
-                    if (bar.updateBar(current)) {
-                        select.play(SOUND_FOLDEROPEN);
+                    if (select.getBarManager().updateBar(current)) {
+                        select.play(SoundType.FOLDER_OPEN);
                     }
                 }
             }
@@ -338,17 +338,17 @@ public class MusicSelectInputProcessor {
                 select.executeEvent(EventType.open_document);
             }
             // close folder
-            if (property.isPressed(input, FOLDER_CLOSE, true) || input.isControlKeyPressed(ControlKeys.LEFT)) {
+            if (property.isPressed(input, MusicSelectKey.FOLDER_CLOSE, true) || input.isControlKeyPressed(ControlKeys.LEFT)) {
                 input.resetKeyChangedTime(1);
-                bar.close();
+                select.getBarManager().close();
             }
 
     		if(input.isActivated(KeyCommand.AUTOPLAY_FOLDER)) {
     			if(current instanceof DirectoryBar) {
-                    if (select.resource.getArenaData().isArena()) {
+    				if (select.resource.getArenaData().isArena()) {
                         select.selectSong(BMSPlayerMode.PLAY);
                     } else {
-                        select.selectSong(BMSPlayerMode.AUTOPLAY);
+    				    select.selectSong(BMSPlayerMode.AUTOPLAY);
                     }
     			}
     		}
@@ -365,7 +365,7 @@ public class MusicSelectInputProcessor {
         }
 
         // song bar moved
-        if (bar.getSelected() != current) {
+        if (select.getBarManager().getSelected() != current) {
             select.selectedBarMoved();
         }
         select.timer.switchTimer(TIMER_SONGBAR_CHANGE, true);
