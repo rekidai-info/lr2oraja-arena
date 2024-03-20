@@ -1,5 +1,7 @@
 package bms.player.beatoraja.arena;
 
+import static bms.player.beatoraja.SystemSoundManager.SoundType.SELECT;
+
 import java.time.Duration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,12 +18,14 @@ import bms.player.beatoraja.MainController;
 import bms.player.beatoraja.MainState;
 import bms.player.beatoraja.input.BMSPlayerInputProcessor;
 import bms.player.beatoraja.input.KeyBoardInputProcesseor.ControlKeys;
+import bms.player.beatoraja.select.PreviewMusicProcessor;
 
 public class ArenaMatching extends MainState {
     private static enum MatchingState {
         JOINING, SHOWING_PLAYERS
     };
 
+    private PreviewMusicProcessor preview;
     private boolean cancel;
     private boolean playerAllowSkip;
     private long prevJoinTimeMillis;
@@ -41,6 +45,10 @@ public class ArenaMatching extends MainState {
 
     @Override
     public void create() {
+    	main.getSoundManager().shuffle();
+    	preview = new PreviewMusicProcessor(main.getAudioProcessor(), resource.getConfig());
+		preview.setDefault(getSound(SELECT));
+
         cancel = false;
         playerAllowSkip = false;
         prevJoinTimeMillis = 0;
@@ -60,6 +68,7 @@ public class ArenaMatching extends MainState {
     @Override
     public void prepare() {
         super.prepare();
+        preview.start(null);
     }
 
     @Override
@@ -188,6 +197,12 @@ public class ArenaMatching extends MainState {
         if (input.isControlKeyPressed(ControlKeys.ENTER)) {
             playerAllowSkip = !playerAllowSkip;
         }
+    }
+
+    @Override
+    public void shutdown() {
+    	preview.stop();
+    	super.shutdown();
     }
 
     @Override
