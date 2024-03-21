@@ -45,11 +45,50 @@
 			</manifest>
 			<fileset dir="${build.dest}" />
 			<fileset excludes="**/*.java" dir="${build.src}" />
-			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-controllers-desktop-natives.jar" />
-			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-controllers-desktop.jar" />
-			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-freetype-natives.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-stb-natives-windows.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-stb-natives-macos.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-stb-natives-macos-arm64.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-stb-natives-linux.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-stb-natives-linux-arm64.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-stb.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-natives-linux-arm64.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-natives-linux.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-natives-macos-arm64.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-natives-macos.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-natives-windows.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-openal-natives-linux-arm64.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-openal-natives-linux.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-openal-natives-macos-arm64.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-openal-natives-macos.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-openal-natives-windows.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-openal.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-opengl-natives-linux-arm64.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-opengl-natives-linux.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-opengl-natives-macos-arm64.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-opengl-natives-macos.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-opengl-natives-windows.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-opengl.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-platform-natives-linux.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-platform-natives-osx.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-platform-natives-windows.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-glfw-natives-linux-arm64.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-glfw-natives-linux.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-glfw-natives-macos-arm64.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-glfw-natives-macos.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-glfw-natives-windows.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl-glfw.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/lwjgl.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/jlayer-gdx.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-jnigen-loader.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-platform-natives-desktop.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-freetype-platform-natives-desktop.jar" />
 			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-freetype.jar" />
-			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-natives.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-controllers-platform-natives-desktop.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-controllers-platform.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-controllers-lwjgl3.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-controllers-desktop.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-controllers.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-backend-lwjgl3.jar" />
 			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx.jar" />
 			<zipfileset excludes="META-INF/*.SF" src="./lib/sqlite-jdbc.jar" />
 			<zipfileset excludes="META-INF/*.SF" src="./lib/jbms-parser.jar" />
@@ -57,16 +96,14 @@
 			<zipfileset excludes="META-INF/*.SF" src="./lib/jbmstable-parser.jar" />
 			<zipfileset excludes="META-INF/*.SF" src="./lib/javacpp.jar" />
 			<zipfileset excludes="META-INF/*.SF" src="./lib/jportaudio.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/ffmpeg-linux-arm64.jar" />
 			<zipfileset excludes="META-INF/*.SF" src="./lib/ffmpeg-linux-x86_64.jar" />
+			<zipfileset excludes="META-INF/*.SF" src="./lib/ffmpeg-macosx-arm64.jar" />
 			<zipfileset excludes="META-INF/*.SF" src="./lib/ffmpeg-macosx-x86_64.jar" />
 			<zipfileset excludes="META-INF/*.SF" src="./lib/ffmpeg-windows-x86_64.jar" />
 			<zipfileset excludes="META-INF/*.SF" src="./lib/ffmpeg.jar" />
-			<zipfileset excludes="META-INF/*.SF" src="./lib/ffmpeg-platform.jar" />
 			<zipfileset excludes="META-INF/*.SF" src="./lib/javacv.jar" />
 			<zipfileset excludes="META-INF/*.SF" src="./lib/javacv-platform.jar" />
-			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-controllers.jar" />
-			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-backend-lwjgl.jar" />
-			<zipfileset excludes="META-INF/*.SF" src="./lib/gdx-backend-lwjgl-natives.jar" />
 			<zipfileset excludes="META-INF/*.SF" src="./lib/twitter4j-core-4.0.4.jar" />
 			<zipfileset excludes="META-INF/*.SF" src="./lib/jflac-codec-1.5.3.jar" />
 			<zipfileset excludes="META-INF/*.SF" src="./lib/luaj-jse-3.0.2-custom.jar" />

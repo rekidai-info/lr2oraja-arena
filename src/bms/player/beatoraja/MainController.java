@@ -9,8 +9,6 @@ import java.util.logging.Logger;
 import bms.player.beatoraja.arena.*;
 import bms.player.beatoraja.arena.font.FontUtils;
 
-import org.lwjgl.input.Mouse;
-
 import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.*;
@@ -552,7 +550,7 @@ public class MainController {
             	input.setMouseMoved(false);
             	mouseMovedTime = time;
 			}
-			Mouse.setGrabbed(current == bmsplayer && time > mouseMovedTime + 5000 && Mouse.isInsideWindow());
+            Gdx.input.setCursorCatched(current == bmsplayer && time > mouseMovedTime + 5000);
 
 			// FPS表示切替
             if (input.isActivated(KeyCommand.SHOW_FPS)) {

@@ -36,6 +36,8 @@ public class BMSPlayerInputProcessor {
 		Resolution resolution = config.getResolution();
 		kbinput = new KeyBoardInputProcesseor(this, player.getMode14().getKeyboardConfig(), resolution);
 		// Gdx.input.setInputProcessor(kbinput);
+		Controllers.preferredManager = "bms.player.beatoraja.controller.Lwjgl3ControllerManager";
+
 		Array<BMControllerInputProcessor> bminput = new Array<BMControllerInputProcessor>();
 		for (Controller controller : Controllers.getControllers()) {
 			Logger.getGlobal().info("コントローラーを検出 : " + controller.getName());

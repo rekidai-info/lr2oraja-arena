@@ -9,6 +9,8 @@ import java.util.logging.Logger;
 
 import javax.swing.JOptionPane;
 
+import org.lwjgl.glfw.GLFW;
+
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Graphics;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -18,8 +20,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.VBox;
 
-import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 
 import bms.player.beatoraja.AudioConfig.DriverType;
 import bms.player.beatoraja.ir.IRConnectionManager;
@@ -116,38 +118,44 @@ public class MainLoader extends Application {
 		try {
 			final MainController main = new MainController(f, config, player, auto, songUpdated);
 
-			LwjglApplicationConfiguration cfg = new LwjglApplicationConfiguration();
-			cfg.width = config.getResolution().width;
-			cfg.height = config.getResolution().height;
+			Lwjgl3ApplicationConfiguration gdxConfig = new Lwjgl3ApplicationConfiguration();
 
-			// fullscreen
-			switch (config.getDisplaymode()) {
-				case FULLSCREEN:
-					cfg.fullscreen = true;
-					break;
-				case BORDERLESS:
-					System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
-					cfg.fullscreen = false;
-					break;
-				case WINDOW:
-					cfg.fullscreen = false;
-					break;
+			final int w = config.getResolution().width;
+			final int h = config.getResolution().height;
+			if (config.getDisplaymode() == Config.DisplayMode.FULLSCREEN) {
+				Graphics.DisplayMode d = null;
+				for (Graphics.DisplayMode display : Lwjgl3ApplicationConfiguration.getDisplayModes()) {
+					System.out.println("available DisplayMode : w - " + display.width + " h - " + display.height
+							+ " refresh - " + display.refreshRate + " color bit - " + display.bitsPerPixel);
+					if (display.width == w
+							&& display.height == h
+							&& (d == null || (d.refreshRate <= display.refreshRate && d.bitsPerPixel <= display.bitsPerPixel))) {
+						d = display;
+					}
+				}
+				if (d != null) {
+					gdxConfig.setFullscreenMode(d);
+				} else {
+					gdxConfig.setWindowedMode(w, h);
+				}
+			} else {
+				if (config.getDisplaymode() == Config.DisplayMode.BORDERLESS) {
+					gdxConfig.setDecorated(false);
+					//System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
+				}
+				gdxConfig.setWindowedMode(w, h);
 			}
 			// vSync
-			cfg.vSyncEnabled = config.isVsync();
-			cfg.backgroundFPS = config.getMaxFramePerSecond();
-			cfg.foregroundFPS = config.getMaxFramePerSecond();
-			cfg.title = "LR2oraja+Arena";
+			gdxConfig.useVsync(config.isVsync());
+			gdxConfig.setIdleFPS(config.getMaxFramePerSecond());
+			gdxConfig.setForegroundFPS(config.getMaxFramePerSecond());
+			gdxConfig.setTitle(MainController.getVersion());
 
-			cfg.audioDeviceBufferSize = config.getAudioConfig().getDeviceBufferSize();
-			cfg.audioDeviceSimultaneousSources = config.getAudioConfig().getDeviceSimultaneousSources();
-			cfg.forceExit = forceExit;
-			if(config.getAudioConfig().getDriver() != DriverType.OpenAL) {
-				LwjglApplicationConfiguration.disableAudio = true;
-			}
+			gdxConfig.setAudioConfig(config.getAudioConfig().getDeviceSimultaneousSources(), config.getAudioConfig().getDeviceBufferSize(), 1);
+
 			// System.setProperty("org.lwjgl.opengl.Display.allowSoftwareOpenGL",
 			// "true");
-			new LwjglApplication(new ApplicationListener() {
+			new Lwjgl3Application(new ApplicationListener() {
 				
 				public void resume() {
 					main.resume();
@@ -172,51 +180,21 @@ public class MainLoader extends Application {
 				public void create() {
 					main.create();
 				}
-			}, cfg);
-
-//			Lwjgl3ApplicationConfiguration cfg = new Lwjgl3ApplicationConfiguration();
-//
-//			final int w = (int) RESOLUTION[config.getResolution()].width;
-//			final int h = (int) RESOLUTION[config.getResolution()].height;
-//			if (config.isFullscreen()) {
-//				DisplayMode d = null;
-//				for (DisplayMode display : cfg.getDisplayModes()) {
-//					System.out.println("available DisplayMode : w - " + display.width + " h - " + display.height
-//							+ " refresh - " + display.refreshRate + " color bit - " + display.bitsPerPixel);
-//					if (display.width == w
-//							&& display.height == h
-//							&& (d == null || (d.refreshRate <= display.refreshRate && d.bitsPerPixel <= display.bitsPerPixel))) {
-//						d = display;
-//					}
-//				}
-//				if (d != null) {
-//					cfg.setFullscreenMode(d);
-//				} else {
-//					cfg.setWindowedMode(w, h);
-//				}
-//			} else {
-//				cfg.setWindowedMode(w, h);
-//			}
-//			// vSync
-//			cfg.useVsync(config.isVsync());
-//			cfg.setIdleFPS(config.getMaxFramePerSecond());
-//			cfg.setTitle(VERSION);
-//
-//			cfg.setAudioConfig(config.getAudioDeviceSimultaneousSources(), config.getAudioDeviceBufferSize(), 1);
-//
-//			new Lwjgl3Application(main, cfg);
+			}, gdxConfig);
+			//System.exit(0);
 		} catch (Throwable e) {
 			e.printStackTrace();
 			Logger.getGlobal().severe(e.getClass().getName() + " : " + e.getMessage());
 		}
+		System.exit(0);
 	}
 
 	public static Graphics.DisplayMode[] getAvailableDisplayMode() {
-		return LwjglApplicationConfiguration.getDisplayModes();
+		return Lwjgl3ApplicationConfiguration.getDisplayModes();
 	}
 
 	public static Graphics.DisplayMode getDesktopDisplayMode() {
-		return LwjglApplicationConfiguration.getDesktopDisplayMode();
+		return Lwjgl3ApplicationConfiguration.getDisplayMode();
 	}
 
 	public static SongDatabaseAccessor getScoreDatabaseAccessor() {
