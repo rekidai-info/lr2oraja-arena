@@ -56,8 +56,7 @@ public abstract class JsonSkinObjectLoader<S extends Skin> {
 								tr[i][j] = srcimg[i * tr[i].length + j];
 							}
 						}
-						SkinImage si = new SkinImage(tr, img.timer, img.cycle);
-						si.setReferenceID(img.ref);
+						SkinImage si = new SkinImage(tr, img.timer, img.cycle, img.ref);
 						obj = si;
 					} else {
 						obj = new SkinImage(getSourceImage(tex, img.x, img.y, img.w, img.h, img.divx, img.divy),
@@ -85,19 +84,12 @@ public abstract class JsonSkinObjectLoader<S extends Skin> {
 								sources[index] = new SkinSourceImage(getSourceImage(tex, img.x, img.y, img.w, img.h, img.divx, img.divy),
 										img.timer, img.cycle);
 							} 
-							
 							break;
 						}
 					}
 				}
 
-				SkinImage si = new SkinImage(sources);
-				if (imgs.value != null) {
-					si.setReference(imgs.value);
-				} else {
-					si.setReferenceID(imgs.ref);
-				}
-				obj = si;
+				obj = imgs.value != null ? new SkinImage(sources, imgs.value) : new SkinImage(sources, imgs.ref);
 				if (imgs.act != null) {
 					obj.setClickevent(imgs.act);
 					obj.setClickeventType(imgs.click);
@@ -127,13 +119,12 @@ public abstract class JsonSkinObjectLoader<S extends Skin> {
 					SkinNumber num = null;
 					if(value.value != null) {
 						num = new SkinNumber(pn, mn, value.timer, value.cycle, value.digit, value.zeropadding, value.space,
-								value.value);
+								value.value, value.align);
 					} else {
 						num = new SkinNumber(pn, mn, value.timer, value.cycle, value.digit, value.zeropadding, value.space,
-								value.ref);
+								value.ref, value.align);
 					}
 
-					num.setAlign(value.align);
 					if(value.offset != null) {
 						SkinOffset[] offsets = new SkinOffset[value.offset.length];
 						for(int i = 0;i < offsets.length;i++) {
@@ -159,12 +150,11 @@ public abstract class JsonSkinObjectLoader<S extends Skin> {
 					SkinNumber num = null;
 					if(value.value != null) {
 						num = new SkinNumber(nimages, value.timer, value.cycle, value.digit,
-								d > 10 ? 2 : value.padding, value.space, value.value);
+								d > 10 ? 2 : value.padding, value.space, value.value, value.align);
 					} else {
 						num = new SkinNumber(nimages, value.timer, value.cycle, value.digit,
-								d > 10 ? 2 : value.padding, value.space, value.ref);
+								d > 10 ? 2 : value.padding, value.space, value.ref, value.align);
 					}
-					num.setAlign(value.align);
 					if(value.offset != null) {
 						SkinOffset[] offsets = new SkinOffset[value.offset.length];
 						for(int i = 0;i < offsets.length;i++) {
@@ -216,9 +206,8 @@ public abstract class JsonSkinObjectLoader<S extends Skin> {
 						obj = new SkinSlider(getSourceImage(tex, img.x, img.y, img.w, img.h, img.divx, img.divy),
 								img.timer, img.cycle, img.angle, (int) ((img.angle == 1 || img.angle == 3
 										? ((float)loader.dstr.width / sk.w) : ((float)loader.dstr.height / sk.h)) * img.range),
-								img.type);
-					}								
-					((SkinSlider)obj).setChangeable(img.changeable);
+								img.type, img.changeable);
+					}
 				}
 				return obj;
 			}
@@ -247,15 +236,14 @@ public abstract class JsonSkinObjectLoader<S extends Skin> {
 					if(tex != null) {
 						if(img.value != null) {
 							obj = new SkinGraph(getSourceImage(tex, img.x, img.y, img.w, img.h, img.divx, img.divy),
-									img.timer, img.cycle, img.value);
+									img.timer, img.cycle, img.value, img.angle);
 						} else if(img.isRefNum) {
 							obj = new SkinGraph(getSourceImage(tex, img.x, img.y, img.w, img.h, img.divx, img.divy),
-									img.timer, img.cycle, img.type, img.min, img.max);
+									img.timer, img.cycle, img.type, img.min, img.max, img.angle);
 						} else {
 							obj = new SkinGraph(getSourceImage(tex, img.x, img.y, img.w, img.h, img.divx, img.divy),
-									img.timer, img.cycle, img.type);
+									img.timer, img.cycle, img.type, img.angle);
 						}
-						((SkinGraph) obj).setDirection(img.angle);									
 					}
 				}
 				return obj;
