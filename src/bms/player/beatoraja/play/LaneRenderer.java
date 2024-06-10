@@ -332,9 +332,42 @@ public class LaneRenderer {
 
 		// draw section line
 		final double orgy = y;
+		final boolean enableConstant = playconfig.isEnableConstant();
+		final int baseduration = playconfig.getDuration();
+		final float alphaLimit =  playconfig.getConstantFadeinTime() * 1000;
 		for (int i = pos; i < timelines.length && y <= hu; i++) {
 			final TimeLine tl = timelines[i];
 			if (tl.getMicroTime() >= microtime) {
+				if (enableConstant) {
+					final long targetTime = microtime + (baseduration * 1000);
+					final long timeDifference = tl.getMicroTime() - targetTime;
+					if(alphaLimit >= 0) {
+						if (tl.getMicroTime() >= targetTime) {
+						    if (timeDifference < alphaLimit) {
+						    	// フェードイン処理
+						        sprite.setColor(1f, 1f, 1f, (alphaLimit - timeDifference) / alphaLimit);
+						    } else {
+						    	// ノーツ非表示
+						        continue;
+						    }
+						} else {
+						    sprite.setColor(Color.WHITE);
+						}
+					} else {
+						if (tl.getMicroTime() >= targetTime) {
+					    	// ノーツ非表示
+							continue;
+						} else {
+						    if (timeDifference > alphaLimit) {
+						    	// フェードイン処理
+						        sprite.setColor(1f, 1f, 1f, 1f - (alphaLimit - timeDifference) / alphaLimit);
+						    } else {
+							    sprite.setColor(Color.WHITE);
+						    }
+						}						
+					}
+				}
+
 				if (i > 0) {
 					final TimeLine prevtl = timelines[i - 1];
 					if (prevtl.getMicroTime() + prevtl.getMicroStop() > microtime) {
@@ -419,6 +452,36 @@ public class LaneRenderer {
 		
 		for (int i = pos; i < timelines.length && y <= hu; i++) {
 			final TimeLine tl = timelines[i];
+			if (enableConstant) {
+				final long targetTime = microtime + (baseduration * 1000);
+				final long timeDifference = tl.getMicroTime() - targetTime;
+				if(alphaLimit >= 0) {
+					if (tl.getMicroTime() >= targetTime) {
+					    if (timeDifference < alphaLimit) {
+					    	// フェードイン処理
+					        sprite.setColor(1f, 1f, 1f, (alphaLimit - timeDifference) / alphaLimit);
+					    } else {
+					    	// ノーツ非表示
+					        continue;
+					    }
+					} else {
+					    sprite.setColor(Color.WHITE);
+					}
+				} else {
+					if (tl.getMicroTime() >= targetTime) {
+				    	// ノーツ非表示
+						continue;
+					} else {
+					    if (timeDifference > alphaLimit) {
+					    	// フェードイン処理
+					        sprite.setColor(1f, 1f, 1f, 1f - (alphaLimit - timeDifference) / alphaLimit);
+					    } else {
+						    sprite.setColor(Color.WHITE);
+					    }
+					}						
+				}
+			}
+
 			if (tl.getMicroTime() >= microtime) {
 				if (i > 0) {
 					final TimeLine prevtl = timelines[i - 1];
@@ -433,29 +496,10 @@ public class LaneRenderer {
 				}
 			}
 			// ノート描画
-			final boolean enableConstant = playconfig.isEnableConstant();
-			final int baseduration = playconfig.getDuration();
-			final float alphaLimit =  playconfig.getConstantFadeinTime() * 1000;
 			for (int lane = 0; lane < lanes.length; lane++) {
 				final float scale = lanes[lane].scale;
 				final Note note = tl.getNote(lane);
 				if (note != null) {
-					if (enableConstant) {
-						long targetTime = microtime + (baseduration * 1000);
-						long timeDifference = tl.getMicroTime() - targetTime;
-						if (tl.getMicroTime() >= targetTime) {
-						    if (timeDifference < alphaLimit) {
-						    	// フェードイン処理
-						        float alpha = (alphaLimit - timeDifference) / alphaLimit;
-						        sprite.setColor(new Color(Color.WHITE.r, Color.WHITE.g, Color.WHITE.b, alpha));
-						    } else {
-						    	// ノーツ非表示
-						        continue;
-						    }
-						} else {
-						    sprite.setColor(Color.WHITE);
-						}
-					}
 					//4分のタイミングでノートを拡大する
 					float dstx = lanes[lane].region.x + offsetX;
 					float dsty = (float) y + offsetY - offsetH / 2;
